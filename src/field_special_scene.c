@@ -1,25 +1,26 @@
 #include "global.h"
 #include "event_data.h"
 #include "event_object_movement.h"
+#include "field_camera.h"
+#include "field_screen_effect.h"
+#include "field_specials.h"
+#include "fieldmap.h"
 #include "main.h"
+#include "overworld.h"
 #include "palette.h"
 #include "script.h"
 #include "script_movement.h"
 #include "sound.h"
 #include "sprite.h"
 #include "task.h"
+#include "constants/event_objects.h"
+#include "constants/event_object_movement.h"
+#include "constants/field_specials.h"
 #include "constants/songs.h"
 #include "constants/vars.h"
+#include "constants/metatile_labels.h"
 
 #define SECONDS(value) ((signed) (60.0 * value + 0.5))
-
-extern u8 GetSSTidalLocation(s8 *, s8 *, s16 *, s16 *); // should be in field_specials.h
-extern void Overworld_SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
-extern bool32 CountSSTidalStep(u16);
-extern void copy_saved_warp2_bank_and_enter_x_to_warp1(u8 unused);
-extern void sp13E_warp_to_last_warp(void);
-extern void saved_warp2_set(int unused, s8 mapGroup, s8 mapNum, s8 warpId);
-extern void sub_80AF8B8(void);
 
 // porthole states
 enum
@@ -30,20 +31,23 @@ enum
     EXIT_PORTHOLE,
 };
 
-extern void SetCameraPanning(s16 x, s16 y);
-extern void SetCameraPanningCallback(void ( *callback)());
-extern void InstallCameraPanAheadCallback();
-extern void pal_fill_black(void);
-extern void MapGridSetMetatileIdAt(s32 x, s32 y, u16 metatileId);
-extern void DrawWholeMapView();
-
 //. rodata
 static const s8 gTruckCamera_HorizontalTable[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, -1, -1, -1, 0};
-const u8 gUnknown_0858E8AB[] = {0x18, 0xFE};
-const u8 gUnknown_0858E8AD[] = {0x17, 0xFE};
+
+static const u8 sSSTidalSailEastMovementScript[] = 
+{
+    MOVEMENT_ACTION_WALK_FAST_RIGHT, 
+    MOVEMENT_ACTION_STEP_END
+};
+
+static const u8 sSSTidalSailWestMovementScript[] = 
+{
+    MOVEMENT_ACTION_WALK_FAST_LEFT, 
+    MOVEMENT_ACTION_STEP_END
+};
 
 // .text
-void Task_Truck3(u8);
+static void Task_Truck3(u8);
 
 s16 GetTruckCameraBobbingY(int a1)
 {
@@ -121,7 +125,7 @@ void Task_Truck2(u8 taskId)
     }
 }
 
-void Task_Truck3(u8 taskId)
+static void Task_Truck3(u8 taskId)
 {
    s16 *data = gTasks[taskId].data;
    s16 cameraXpan;
@@ -175,7 +179,7 @@ void Task_HandleTruckSequence(u8 taskId)
         data[1]++;
         if (data[1] == SECONDS(2.5))
         {
-            pal_fill_black();
+            FadeInFromBlack();
             data[1] = 0;
             data[0] = 2;
         }
@@ -212,9 +216,9 @@ void Task_HandleTruckSequence(u8 taskId)
         data[1]++;
         if (data[1] == 120)
         {
-            MapGridSetMetatileIdAt(11, 8, 520);
-            MapGridSetMetatileIdAt(11, 9, 528);
-            MapGridSetMetatileIdAt(11, 10, 536);
+            MapGridSetMetatileIdAt(11, 8, METATILE_ID(InsideOfTruck, ExitLight_Top));
+            MapGridSetMetatileIdAt(11, 9, METATILE_ID(InsideOfTruck, ExitLight_Mid));
+            MapGridSetMetatileIdAt(11, 10, METATILE_ID(InsideOfTruck, ExitLight_Bottom));
             DrawWholeMapView();
             PlaySE(SE_TRACK_DOOR);
             DestroyTask(taskId);
@@ -226,9 +230,9 @@ void Task_HandleTruckSequence(u8 taskId)
 
 void ExecuteTruckSequence(void)
 {
-    MapGridSetMetatileIdAt(11, 8, 525);
-    MapGridSetMetatileIdAt(11, 9, 533);
-    MapGridSetMetatileIdAt(11, 10, 541);
+    MapGridSetMetatileIdAt(11, 8, METATILE_ID(InsideOfTruck, DoorClosedFloor_Top));
+    MapGridSetMetatileIdAt(11, 9, METATILE_ID(InsideOfTruck, DoorClosedFloor_Mid));
+    MapGridSetMetatileIdAt(11, 10, METATILE_ID(InsideOfTruck, DoorClosedFloor_Bottom));
     DrawWholeMapView();
     ScriptContext2_Enable();
     CpuFastFill(0, gPlttBufferFaded, 0x400);
@@ -245,18 +249,18 @@ void EndTruckSequence(u8 taskId)
     }
 }
 
-bool8 sub_80FB59C(void)
+bool8 TrySetPortholeWarpDestination(void)
 {
     s8 mapGroup, mapNum;
     s16 x, y;
 
-    if (GetSSTidalLocation(&mapGroup, &mapNum, &x, &y))
+    if (GetSSTidalLocation(&mapGroup, &mapNum, &x, &y) != SS_TIDAL_LOCATION_CURRENTS)
     {
         return FALSE;
     }
     else
     {
-        Overworld_SetWarpDestination(mapGroup, mapNum, -1, x, y);
+        SetWarpDestination(mapGroup, mapNum, -1, x, y);
         return TRUE;
     }
 }
@@ -264,7 +268,7 @@ bool8 sub_80FB59C(void)
 void Task_HandlePorthole(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    u16 *var = GetVarPointer(VAR_PORTHOLE_STATE);
+    u16 *cruiseState = GetVarPointer(VAR_SS_TIDAL_STATE);
     struct WarpData *location = &gSaveBlock1Ptr->location;
 
     switch (data[0])
@@ -276,80 +280,77 @@ void Task_HandlePorthole(u8 taskId)
             data[0] = EXECUTE_MOVEMENT; // execute movement before checking if should be exited. strange?
         }
         break;
-    case IDLE_CHECK: // idle and move.
+    case IDLE_CHECK:
         if (gMain.newKeys & A_BUTTON)
             data[1] = 1;
-        if (!ScriptMovement_IsObjectMovementFinished(0xFF, location->mapNum, location->mapGroup))
+        if (!ScriptMovement_IsObjectMovementFinished(OBJ_EVENT_ID_PLAYER, location->mapNum, location->mapGroup))
             return;
         if (CountSSTidalStep(1) == TRUE)
         {
-            if (*var == 2)
-                *var = 9;
+            if (*cruiseState == SS_TIDAL_DEPART_SLATEPORT)
+                *cruiseState = SS_TIDAL_EXIT_CURRENTS_RIGHT;
             else
-                *var = 10;
-            data[0] = 3;
+                *cruiseState = SS_TIDAL_EXIT_CURRENTS_LEFT;
+            data[0] = EXIT_PORTHOLE;
             return;
         }
-        data[0] = 2;
-    case EXECUTE_MOVEMENT: // execute movement.
+        data[0] = EXECUTE_MOVEMENT;
+        //fallthrough
+    case EXECUTE_MOVEMENT:
         if (data[1])
         {
-            data[0] = EXIT_PORTHOLE; // exit porthole.
+            data[0] = EXIT_PORTHOLE;
             return;
         }
-        // run this once.
-        if (*var == 2) // which direction?
+
+        if (*cruiseState == SS_TIDAL_DEPART_SLATEPORT)
         {
-            ScriptMovement_StartObjectMovementScript(0xFF, location->mapNum, location->mapGroup, gUnknown_0858E8AB);
-            data[0] = IDLE_CHECK; // run case 1.
+            ScriptMovement_StartObjectMovementScript(OBJ_EVENT_ID_PLAYER, location->mapNum, location->mapGroup, sSSTidalSailEastMovementScript);
+            data[0] = IDLE_CHECK;
         }
         else
         {
-            ScriptMovement_StartObjectMovementScript(0xFF, location->mapNum, location->mapGroup, gUnknown_0858E8AD);
-            data[0] = IDLE_CHECK; // run case 1.
+            ScriptMovement_StartObjectMovementScript(OBJ_EVENT_ID_PLAYER, location->mapNum, location->mapGroup, sSSTidalSailWestMovementScript);
+            data[0] = IDLE_CHECK;
         }
         break;
-    case EXIT_PORTHOLE: // exit porthole.
-        FlagClear(0x4001);
-        FlagClear(0x4000);
-        copy_saved_warp2_bank_and_enter_x_to_warp1(0);
-        sp13E_warp_to_last_warp();
+    case EXIT_PORTHOLE:
+        FlagClear(FLAG_DONT_TRANSITION_MUSIC);
+        FlagClear(FLAG_HIDE_MAP_NAME_POPUP);
+        SetWarpDestinationToDynamicWarp(0);
+        DoDiveWarp();
         DestroyTask(taskId);
         break;
     }
 }
 
-void sub_80FB6EC(void)
+static void ShowSSTidalWhileSailing(void)
 {
-    u8 spriteId = AddPseudoEventObject(0x8C, SpriteCallbackDummy, 112, 80, 0);
+    u8 spriteId = AddPseudoObjectEvent(OBJ_EVENT_GFX_SS_TIDAL, SpriteCallbackDummy, 112, 80, 0);
 
     gSprites[spriteId].coordOffsetEnabled = FALSE;
 
-    if (VarGet(0x40B4) == 2)
-    {
-        StartSpriteAnim(&gSprites[spriteId], GetFaceDirectionAnimNum(4));
-    }
+    if (VarGet(VAR_SS_TIDAL_STATE) == SS_TIDAL_DEPART_SLATEPORT)
+        StartSpriteAnim(&gSprites[spriteId], GetFaceDirectionAnimNum(DIR_EAST));
     else
-    {
-        StartSpriteAnim(&gSprites[spriteId], GetFaceDirectionAnimNum(3));
-    }
+        StartSpriteAnim(&gSprites[spriteId], GetFaceDirectionAnimNum(DIR_WEST));
 }
 
-void sub_80FB768(void)
+void FieldCB_ShowPortholeView(void)
 {
-    sub_80FB6EC();
-    gEventObjects[gPlayerAvatar.eventObjectId].invisible = TRUE;
-    pal_fill_black();
+    ShowSSTidalWhileSailing();
+    gObjectEvents[gPlayerAvatar.objectEventId].invisible = TRUE;
+    FadeInFromBlack();
     CreateTask(Task_HandlePorthole, 80);
     ScriptContext2_Enable();
 }
 
-void sub_80FB7A4(void)
+void LookThroughPorthole(void)
 {
     FlagSet(FLAG_SYS_CRUISE_MODE);
-    FlagSet(0x4001);
-    FlagSet(0x4000);
-    saved_warp2_set(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, -1);
-    sub_80FB59C();
-    sub_80AF8B8();
+    FlagSet(FLAG_DONT_TRANSITION_MUSIC);
+    FlagSet(FLAG_HIDE_MAP_NAME_POPUP);
+    SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, -1);
+    TrySetPortholeWarpDestination();
+    DoPortholeWarp();
 }

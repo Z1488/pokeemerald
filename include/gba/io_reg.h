@@ -461,7 +461,7 @@
 #define REG_DMA3CNT_L   (*(vu16 *)REG_ADDR_DMA3CNT_L)
 #define REG_DMA3CNT_H   (*(vu16 *)REG_ADDR_DMA3CNT_H)
 
-#define REG_TMCNT(n)    (*(vu16 *)(REG_ADDR_TMCNT + ((n) * 4)))
+#define REG_TMCNT(n)    (*(vu32 *)(REG_ADDR_TMCNT + ((n) * 4)))
 #define REG_TMCNT_L(n)  (*(vu16 *)(REG_ADDR_TMCNT_L + ((n) * 4)))
 #define REG_TMCNT_H(n)  (*(vu16 *)(REG_ADDR_TMCNT_H + ((n) * 4)))
 #define REG_TM0CNT      (*(vu32 *)REG_ADDR_TM0CNT)
@@ -565,14 +565,19 @@
 #define WINOUT_WIN01_BG1    (1 << 1)
 #define WINOUT_WIN01_BG2    (1 << 2)
 #define WINOUT_WIN01_BG3    (1 << 3)
+#define WINOUT_WIN01_BG_ALL (WINOUT_WIN01_BG0 | WINOUT_WIN01_BG1 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3)
 #define WINOUT_WIN01_OBJ    (1 << 4)
 #define WINOUT_WIN01_CLR    (1 << 5)
 #define WINOUT_WINOBJ_BG0   (1 << 8)
 #define WINOUT_WINOBJ_BG1   (1 << 9)
 #define WINOUT_WINOBJ_BG2   (1 << 10)
 #define WINOUT_WINOBJ_BG3   (1 << 11)
+#define WINOUT_WINOBJ_BG_ALL (WINOUT_WINOBJ_BG0 | WINOUT_WINOBJ_BG1 | WINOUT_WINOBJ_BG2 | WINOUT_WINOBJ_BG3)
 #define WINOUT_WINOBJ_OBJ   (1 << 12)
 #define WINOUT_WINOBJ_CLR   (1 << 13)
+
+#define WIN_RANGE(a, b) (((a) << 8) | (b))
+#define WIN_RANGE2(a, b) ((b) | ((a) << 8))
 
 // BLDCNT
 // Bits 0-5 select layers for the 1st target

@@ -5,7 +5,7 @@
 #include "battle_interface.h"
 #include "battle_message.h"
 #include "bg.h"
-#include "data2.h"
+#include "data.h"
 #include "item_menu.h"
 #include "link.h"
 #include "main.h"
@@ -22,13 +22,7 @@
 #include "window.h"
 #include "constants/battle_anim.h"
 #include "constants/songs.h"
-
-extern u16 gBattle_BG0_X;
-extern u16 gBattle_BG0_Y;
-
-extern const struct CompressedSpritePalette gTrainerBackPicPaletteTable[];
-
-extern void sub_81358F4(void);
+#include "constants/rgb.h"
 
 // this file's functions
 static void SafariHandleGetMonData(void);
@@ -87,7 +81,7 @@ static void SafariHandleBattleAnimation(void);
 static void SafariHandleLinkStandbyMsg(void);
 static void SafariHandleResetActionMoveSelection(void);
 static void SafariHandleCmd55(void);
-static void nullsub_115(void);
+static void SafariCmdEnd(void);
 
 static void SafariBufferRunCommand(void);
 static void SafariBufferExecCompleted(void);
@@ -151,10 +145,10 @@ static void (*const sSafariBufferCommands[CONTROLLER_CMDS_COUNT])(void) =
     SafariHandleLinkStandbyMsg,
     SafariHandleResetActionMoveSelection,
     SafariHandleCmd55,
-    nullsub_115
+    SafariCmdEnd
 };
 
-static void nullsub_114(void)
+static void SpriteCB_Null4(void)
 {
 }
 
@@ -362,7 +356,7 @@ static void SafariHandleDrawTrainerPic(void)
     gBattlerSpriteIds[gActiveBattler] = CreateSprite(
       &gMultiuseSpriteTemplate,
       80,
-      (8 - gTrainerBackPicCoords[gSaveBlock2Ptr->playerGender].coords) * 4 + 80,
+      (8 - gTrainerBackPicCoords[gSaveBlock2Ptr->playerGender].size) * 4 + 80,
       30);
     gSprites[gBattlerSpriteIds[gActiveBattler]].oam.paletteNum = gActiveBattler;
     gSprites[gBattlerSpriteIds[gActiveBattler]].pos2.x = 240;
@@ -478,7 +472,7 @@ static void SafariHandleChooseItem(void)
 {
     s32 i;
 
-    BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 0x10, 0);
+    BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 0x10, RGB_BLACK);
     gBattlerControllerFuncs[gActiveBattler] = SafariOpenPokeblockCase;
     gBattlerInMenuId = gActiveBattler;
 }
@@ -691,6 +685,6 @@ static void SafariHandleCmd55(void)
         gBattlerControllerFuncs[gActiveBattler] = sub_81595E4;
 }
 
-static void nullsub_115(void)
+static void SafariCmdEnd(void)
 {
 }

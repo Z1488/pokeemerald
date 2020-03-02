@@ -17,9 +17,6 @@
 #include "mystery_event_msg.h"
 #include "pokemon_storage_system.h"
 
-extern void sub_811EFC0(u8);
-extern void ValidateEReaderTrainer(void);
-
 extern ScrCmdFunc gMysteryEventScriptCmdTable[];
 extern ScrCmdFunc gMysteryEventScriptCmdTableEnd[];
 
@@ -289,7 +286,7 @@ bool8 MEScrCmd_givenationaldex(struct ScriptContext *ctx)
 
 bool8 MEScrCmd_addrareword(struct ScriptContext *ctx)
 {
-    sub_811EFC0(ScriptReadByte(ctx));
+    UnlockAdditionalPhrase(ScriptReadByte(ctx));
     StringExpandPlaceholders(gStringVar4, gText_MysteryGiftRareWord);
     ctx->data[2] = 2;
     return FALSE;

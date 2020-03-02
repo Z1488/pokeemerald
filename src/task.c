@@ -1,9 +1,6 @@
 #include "global.h"
 #include "task.h"
 
-#define HEAD_SENTINEL 0xFE
-#define TAIL_SENTINEL 0xFF
-
 struct Task gTasks[NUM_TASKS];
 
 static void InsertTask(u8 newTaskId);
@@ -186,7 +183,7 @@ u8 FindTaskIdByFunc(TaskFunc func)
         if (gTasks[i].isActive == TRUE && gTasks[i].func == func)
             return (u8)i;
 
-    return -1;
+    return 0xFF;
 }
 
 u8 GetTaskCount(void)

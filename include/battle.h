@@ -28,15 +28,15 @@
 #define B_ACTION_SAFARI_GO_NEAR         7
 #define B_ACTION_SAFARI_RUN             8
 #define B_ACTION_WALLY_THROW            9
-// The exact purposes of these are unclear
-#define B_ACTION_EXEC_SCRIPT            10 // when executing an action
+#define B_ACTION_EXEC_SCRIPT            10
+#define B_ACTION_TRY_FINISH             11
+#define B_ACTION_FINISHED               12
+
 #define B_ACTION_CANCEL_PARTNER         12 // when choosing an action
-#define B_ACTION_FINISHED               12 // when executing an action
 #define B_ACTION_NOTHING_FAINTED        13 // when choosing an action
 #define B_ACTION_NONE                   0xFF
 
 #define MAX_TRAINER_ITEMS 4
-#define MAX_MON_MOVES 4
 
 // array entries for battle communication
 #define MULTIUSE_STATE          0x0
@@ -61,103 +61,45 @@
 
 #define BATTLE_BUFFER_LINK_SIZE 0x1000
 
-struct TrainerMonNoItemDefaultMoves
-{
-    u16 iv;
-    u8 lvl;
-    u16 species;
-};
-
-struct TrainerMonItemDefaultMoves
-{
-    u16 iv;
-    u8 lvl;
-    u16 species;
-    u16 heldItem;
-};
-
-struct TrainerMonNoItemCustomMoves
-{
-    u16 iv;
-    u8 lvl;
-    u16 species;
-    u16 moves[4];
-};
-
-struct TrainerMonItemCustomMoves
-{
-    u16 iv;
-    u8 lvl;
-    u16 species;
-    u16 heldItem;
-    u16 moves[4];
-};
-
-union TrainerMonPtr
-{
-    const struct TrainerMonNoItemDefaultMoves *NoItemDefaultMoves;
-    const struct TrainerMonNoItemCustomMoves *NoItemCustomMoves;
-    const struct TrainerMonItemDefaultMoves *ItemDefaultMoves;
-    const struct TrainerMonItemCustomMoves *ItemCustomMoves;
-};
-
-struct Trainer
-{
-    /*0x00*/ u8 partyFlags;
-    /*0x01*/ u8 trainerClass;
-    /*0x02*/ u8 encounterMusic_gender; // last bit is gender
-    /*0x03*/ u8 trainerPic;
-    /*0x04*/ u8 trainerName[12];
-    /*0x10*/ u16 items[4];
-    /*0x18*/ bool8 doubleBattle;
-    /*0x1C*/ u32 aiFlags;
-    /*0x20*/ u8 partySize;
-    /*0x24*/ union TrainerMonPtr party;
-};
-
-extern const struct Trainer gTrainers[];
-
-#define TRAINER_ENCOUNTER_MUSIC(trainer)((gTrainers[trainer].encounterMusic_gender & 0x7F))
-
-struct UnknownFlags
+struct ResourceFlags
 {
     u32 flags[4];
 };
 
-#define UNKNOWN_FLAG_FLASH_FIRE 1
+#define RESOURCE_FLAG_FLASH_FIRE 1
 
 struct DisableStruct
 {
-     u32 transformedMonPersonality;
-     u16 disabledMove;
-     u16 encoredMove;
-     u8 protectUses;
-     u8 stockpileCounter;
-     u8 substituteHP;
-     u8 disableTimer:4;
-     u8 disableTimerStartValue:4;
-     u8 encoredMovePos;
-     u8 filler_D; // Unused field.
-     u8 encoreTimer:4;
-     u8 encoreTimerStartValue:4;
-     u8 perishSongTimer:4;
-     u8 perishSongTimerStartValue:4;
-     u8 furyCutterCounter;
-     u8 rolloutTimer:4;
-     u8 rolloutTimerStartValue:4;
-     u8 chargeTimer:4;
-     u8 chargeTimerStartValue:4;
-     u8 tauntTimer:4;
-     u8 tauntTimer2:4;
-     u8 battlerPreventingEscape;
-     u8 battlerWithSureHit;
-     u8 isFirstTurn;
-     u8 unk17;
-     u8 truantCounter:1;
-     u8 truantUnknownBit:1;
-     u8 unk18_a_2:2;
-     u8 unk18_b:4;
-     u8 rechargeTimer;
+    u32 transformedMonPersonality;
+    u16 disabledMove;
+    u16 encoredMove;
+    u8 protectUses;
+    u8 stockpileCounter;
+    u8 substituteHP;
+    u8 disableTimer:4;
+    u8 disableTimerStartValue:4;
+    u8 encoredMovePos;
+    u8 filler_D; // Unused field.
+    u8 encoreTimer:4;
+    u8 encoreTimerStartValue:4;
+    u8 perishSongTimer:4;
+    u8 perishSongTimerStartValue:4;
+    u8 furyCutterCounter;
+    u8 rolloutTimer:4;
+    u8 rolloutTimerStartValue:4;
+    u8 chargeTimer:4;
+    u8 chargeTimerStartValue:4;
+    u8 tauntTimer:4;
+    u8 tauntTimer2:4;
+    u8 battlerPreventingEscape;
+    u8 battlerWithSureHit;
+    u8 isFirstTurn;
+    u8 filler_17; // Unused field.
+    u8 truantCounter:1;
+    u8 truantSwitchInHack:1;
+    u8 filler_18_2:2; // Unused field.
+    u8 mimickedMoves:4;
+    u8 rechargeTimer;
 };
 
 struct ProtectStruct
@@ -168,20 +110,20 @@ struct ProtectStruct
     u32 helpingHand:1;
     u32 bounceMove:1;
     u32 stealMove:1;
-    u32 flag0Unknown:1;
+    u32 flag0Unknown:1; // Only set to 0 once.
     u32 prlzImmobility:1;
     u32 confusionSelfDmg:1;
     u32 targetNotAffected:1;
     u32 chargingTurn:1;
     u32 fleeFlag:2; // For RunAway and Smoke Ball.
-    u32 usedImprisionedMove:1;
+    u32 usedImprisonedMove:1;
     u32 loveImmobility:1;
     u32 usedDisabledMove:1;
     u32 usedTauntedMove:1;
-    u32 flag2Unknown:1;
+    u32 flag2Unknown:1; // Only set to 0 once. Checked in 'WasUnableToUseMove' function.
     u32 flinchImmobility:1;
     u32 notFirstStrike:1;
-    u32 flag_x10:1;
+    u32 palaceUnableToUseMove:1;
     u32 physicalDmg;
     u32 specialDmg;
     u8 physicalBattlerId;
@@ -237,19 +179,19 @@ struct AI_ThinkingStruct
     u8 aiState;
     u8 movesetIndex;
     u16 moveConsidered;
-    s8 score[4];
+    s8 score[MAX_MON_MOVES];
     u32 funcResult;
     u32 aiFlags;
     u8 aiAction;
     u8 aiLogicId;
     u8 filler12[6];
-    u8 simulatedRNG[4];
+    u8 simulatedRNG[MAX_MON_MOVES];
 };
 
 struct UsedMoves
 {
-    u16 moves[MAX_BATTLERS_COUNT];
-    u16 unknown[MAX_BATTLERS_COUNT];
+    u16 moves[MAX_MON_MOVES];
+    u16 unknown[MAX_MON_MOVES];
 };
 
 struct BattleHistory
@@ -275,21 +217,16 @@ struct BattleCallbacksStack
 
 struct StatsArray
 {
-    u16 hp;
-    u16 atk;
-    u16 def;
-    u16 spd;
-    u16 spAtk;
-    u16 spDef;
+    u16 stats[NUM_STATS];
 };
 
 struct BattleResources
 {
-    struct SecretBaseRecord* secretBase;
-    struct UnknownFlags *flags;
+    struct SecretBase* secretBase;
+    struct ResourceFlags *flags;
     struct BattleScriptsStack* battleScriptsStack;
     struct BattleCallbacksStack* battleCallbackStack;
-    struct StatsArray* statsBeforeLvlUp;
+    struct StatsArray* beforeLvlUp;
     struct AI_ThinkingStruct *ai;
     struct BattleHistory *battleHistory;
     struct BattleScriptsStack *AI_ScriptsStack;
@@ -300,13 +237,12 @@ struct BattleResults
     u8 playerFaintCounter;    // 0x0
     u8 opponentFaintCounter;  // 0x1
     u8 playerSwitchesCounter; // 0x2
-    u8 unk3;                  // 0x3
-    u8 unk4;                  // 0x4
-    u8 playerMonWasDamaged:1;              // 0x5
+    u8 numHealingItemsUsed;   // 0x3
+    u8 numRevivesUsed;        // 0x4
+    u8 playerMonWasDamaged:1; // 0x5
     u8 usedMasterBall:1;      // 0x5
     u8 caughtMonBall:4;       // 0x5
     u8 shinyWildMon:1;        // 0x5
-    u8 unk5_7:1;              // 0x5
     u16 playerMon1Species;    // 0x6
     u8 playerMon1Name[POKEMON_NAME_LENGTH + 1];    // 0x8
     u8 battleTurnCounter;     // 0x13
@@ -411,16 +347,16 @@ struct BattleStruct
 {
     u8 turnEffectsTracker;
     u8 turnEffectsBattlerId;
-    u8 filler2;
+    u8 unused_0;
     u8 turnCountersTracker;
     u8 wrappedMove[MAX_BATTLERS_COUNT * 2]; // Leftover from Ruby's ewram access.
     u8 moveTarget[MAX_BATTLERS_COUNT];
     u8 expGetterMonId;
-    u8 field_11;
+    u8 unused_1;
     u8 wildVictorySong;
     u8 dynamicMoveType;
     u8 wrappedBy[MAX_BATTLERS_COUNT];
-    u16 assistPossibleMoves[PARTY_SIZE * 4]; // Each of mons can know max 4 moves.
+    u16 assistPossibleMoves[PARTY_SIZE * MAX_MON_MOVES]; // Each of mons can know max 4 moves.
     u8 focusPunchBattlerId;
     u8 battlerPreventingSwitchout;
     u8 moneyMultiplier;
@@ -437,28 +373,25 @@ struct BattleStruct
     u8 field_60[4][3];
     u8 runTries;
     u8 caughtMonNick[POKEMON_NAME_LENGTH + 1];
-    u8 field_78;
+    u8 unused_2;
     u8 safariGoNearCounter;
     u8 safariPkblThrowCounter;
     u8 safariEscapeFactor;
     u8 safariCatchFactor;
-    u8 field_7D;
-    u8 field_7E;
+    u8 linkBattleVsSpriteId_V; // The letter "V"
+    u8 linkBattleVsSpriteId_S; // The letter "S"
     u8 formToChangeInto;
     u8 chosenMovePositions[MAX_BATTLERS_COUNT];
     u8 stateIdAfterSelScript[MAX_BATTLERS_COUNT];
-    u8 field_88;
-    u8 field_89;
-    u8 field_8A;
-    u8 field_8B;
-    u8 field_8C;
-    u8 field_8D;
+    u8 unused_3[3];
+    u8 field_8B; // related to player's pokemon switching
+    u8 unused_4[2];
     u8 stringMoveType;
     u8 expGetterBattlerId;
-    u8 field_90;
-    u8 field_91;
-    u8 field_92;
-    u8 field_93;
+    u8 unused_5;
+    u8 field_91; // related to gAbsentBattlerFlags, possibly absent flags turn ago?
+    u8 field_92; // battle palace related
+    u8 field_93; // related to choosing pokemon?
     u8 wallyBattleState;
     u8 wallyMovesState;
     u8 wallyWaitFrames;
@@ -479,13 +412,13 @@ struct BattleStruct
     u16 changedItems[MAX_BATTLERS_COUNT];
     u8 intimidateBattler;
     u8 switchInItemsCounter;
-    u8 field_DA;
+    u8 arenaTurnCounter;
     u8 turnSideTracker;
-    u8 fillerDC[0xDF-0xDC];
-    u8 field_DF;
+    u8 unused_6[3];
+    u8 givenExpMons; // Bits for enemy party's pokemon that gave exp to player's party.
     u8 lastTakenMoveFrom[MAX_BATTLERS_COUNT * MAX_BATTLERS_COUNT * 2]; // a 3-D array [target][attacker][byte]
     u16 castformPalette[MAX_BATTLERS_COUNT][16];
-    u8 field_180;
+    u8 field_180; // weird field, used in battle_main.c, once accessed as an array of u32 overwriting the field below
     u8 field_181;
     u8 field_182;
     u8 field_183;
@@ -496,7 +429,7 @@ struct BattleStruct
     u8 atkCancellerTracker;
     struct BattleTvMovePoints tvMovePoints;
     struct BattleTv tv;
-    u8 notSureWhatFieldLol[0x28];
+    u8 unused_7[0x28];
     u8 AI_monToSwitchIntoId[MAX_BATTLERS_COUNT];
     s8 arenaMindPoints[2];
     s8 arenaSkillPoints[2];
@@ -545,7 +478,7 @@ struct BattleScripting
     u8 animArg1;
     u8 animArg2;
     u16 tripleKickPower;
-    u8 atk49_state;
+    u8 moveendState;
     u8 battlerWithAbility;
     u8 multihitMoveEffect;
     u8 battler;
@@ -553,9 +486,9 @@ struct BattleScripting
     u8 animTargetsHit;
     u8 statChanger;
     bool8 statAnimPlayed;
-    u8 atk23_state;
+    u8 getexpState;
     u8 battleStyle;
-    u8 atk6C_state;
+    u8 drawlvlupboxState;
     u8 learnMoveState;
     u8 field_20;
     u8 reshowMainState;
@@ -567,9 +500,7 @@ struct BattleScripting
 };
 
 // rom_80A5C6C
-u8 GetBattlerSide(u8 battler);
-u8 GetBattlerPosition(u8 battler);
-u8 GetBattlerAtPosition(u8 position);
+
 
 struct BattleSpriteInfo
 {
@@ -599,8 +530,7 @@ struct BattleAnimationInfo
     u8 field_9_x80:1;
     u8 field_A;
     u8 field_B;
-    u8 field_C;
-    u8 field_D;
+    s16 field_C;
     u8 field_E;
     u8 field_F;
 };
@@ -624,7 +554,7 @@ struct BattleHealthboxInfo
     u8 battlerBounceSpriteId;
     u8 animationState;
     u8 field_5;
-    u8 field_6;
+    u8 matrixNum;
     u8 shadowSpriteId;
     u8 field_8;
     u8 field_9;
@@ -660,10 +590,22 @@ struct MonSpritesGfx
     u8 field_F4[0x80];
     u8 *barFontGfx;
     void *field_178;
-    void *field_17C;
+    u16 *buffer;
 };
 
 // All battle variables are declared in battle_main.c
+extern u16 gBattle_BG0_X;
+extern u16 gBattle_BG0_Y;
+extern u16 gBattle_BG1_X;
+extern u16 gBattle_BG1_Y;
+extern u16 gBattle_BG2_X;
+extern u16 gBattle_BG2_Y;
+extern u16 gBattle_BG3_X;
+extern u16 gBattle_BG3_Y;
+extern u16 gBattle_WIN0H;
+extern u16 gBattle_WIN0V;
+extern u16 gBattle_WIN1H;
+extern u16 gBattle_WIN1V;
 extern u8 gDisplayedStringBattle[300];
 extern u8 gBattleTextBuff1[TEXT_BUFF_ARRAY_COUNT];
 extern u8 gBattleTextBuff2[TEXT_BUFF_ARRAY_COUNT];

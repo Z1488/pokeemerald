@@ -1,20 +1,12 @@
 #include "global.h"
-#include "data2.h"
+#include "battle.h"
+#include "data.h"
 #include "task.h"
 #include "trig.h"
 #include "scanline_effect.h"
 
 static void CopyValue16Bit(void);
 static void CopyValue32Bit(void);
-
-extern u16 gBattle_BG0_Y;
-extern u16 gBattle_BG0_X;
-extern u16 gBattle_BG1_X;
-extern u16 gBattle_BG1_Y;
-extern u16 gBattle_BG2_X;
-extern u16 gBattle_BG2_Y;
-extern u16 gBattle_BG3_X;
-extern u16 gBattle_BG3_Y;
 
 // EWRAM vars
 

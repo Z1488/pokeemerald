@@ -1,162 +1,153 @@
 Route115_MapScripts:: @ 81F2920
-	map_script 1, Route115_MapScript1_1F2930
-	map_script 3, Route115_MapScript1_1F2947
-	map_script 2, Route115_MapScript2_1F2969
+	map_script MAP_SCRIPT_ON_LOAD, Route115_OnLoad
+	map_script MAP_SCRIPT_ON_TRANSITION, Route115_OnTransition
+	map_script MAP_SCRIPT_ON_FRAME_TABLE, Route115_OnFrame
 	.byte 0
 
-Route115_MapScript1_1F2930: @ 81F2930
-	compare VAR_0x4037, 3
-	call_if 1, Route115_EventScript_273939
-	compare VAR_0x4037, 4
-	call_if 1, Route115_EventScript_27394C
+Route115_OnLoad: @ 81F2930
+	compare VAR_ABNORMAL_WEATHER_LOCATION, ABNORMAL_WEATHER_ROUTE_115_WEST
+	call_if_eq AbnormalWeather_EventScript_PlaceTilesRoute115West
+	compare VAR_ABNORMAL_WEATHER_LOCATION, ABNORMAL_WEATHER_ROUTE_115_EAST
+	call_if_eq AbnormalWeather_EventScript_PlaceTilesRoute115East
 	end
 
-Route115_MapScript1_1F2947: @ 81F2947
-	compare VAR_0x4039, 1
-	call_if 1, Route115_EventScript_273D13
-	compare VAR_0x4037, 3
-	call_if 1, Route115_EventScript_273D1B
-	compare VAR_0x4037, 4
-	call_if 1, Route115_EventScript_273D1B
+Route115_OnTransition: @ 81F2947
+	compare VAR_SHOULD_END_ABNORMAL_WEATHER, 1
+	call_if_eq AbnormalWeather_EventScript_HideMapNamePopup
+	compare VAR_ABNORMAL_WEATHER_LOCATION, ABNORMAL_WEATHER_ROUTE_115_WEST
+	call_if_eq AbnormalWeather_StartGroudonWeather
+	compare VAR_ABNORMAL_WEATHER_LOCATION, ABNORMAL_WEATHER_ROUTE_115_EAST
+	call_if_eq AbnormalWeather_StartGroudonWeather
 	end
 
-Route115_MapScript2_1F2969: @ 81F2969
-	map_script_2 VAR_0x4039, 1, gUnknown_08273D1F
+Route115_OnFrame: @ 81F2969
+	map_script_2 VAR_SHOULD_END_ABNORMAL_WEATHER, 1, AbnormalWeather_EventScript_EndEventAndCleanup_1
 	.2byte 0
 
-Route115_EventScript_1F2973:: @ 81F2973
-	msgbox Route115_Text_1F2B55, 2
+Route115_EventScript_Woman:: @ 81F2973
+	msgbox Route115_Text_NeverKnowWhenCavePokemonWillAppear, MSGBOX_NPC
 	end
 
-Route115_EventScript_1F297C:: @ 81F297C
-	msgbox Route115_Text_1F2BC9, 3
+Route115_EventScript_RouteSignRustboro:: @ 81F297C
+	msgbox Route115_Text_RouteSignRustboro, MSGBOX_SIGN
 	end
 
-Route115_EventScript_1F2985:: @ 81F2985
-	msgbox Route115_Text_1F2BE3, 3
+Route115_EventScript_MeteorFallsSign:: @ 81F2985
+	msgbox Route115_Text_MeteorFallsSign, MSGBOX_SIGN
 	end
 
-Route115_EventScript_1F298E:: @ 81F298E
-	trainerbattle 2, TRAINER_TIMOTHY_1, 0, Route115_Text_29B1FA, Route115_Text_29B230, Route115_EventScript_1F29BA
+Route115_EventScript_Timothy:: @ 81F298E
+	trainerbattle_single TRAINER_TIMOTHY_1, Route115_Text_TimothyIntro, Route115_Text_TimothyDefeat, Route115_EventScript_RegisterTimothy
 	specialvar VAR_RESULT, ShouldTryRematchBattle
-	compare VAR_RESULT, 1
-	goto_eq Route115_EventScript_1F29D9
-	msgbox Route115_Text_29B258, 4
+	compare VAR_RESULT, TRUE
+	goto_if_eq Route115_EventScript_RematchTimothy
+	msgbox Route115_Text_TimothyPostBattle, MSGBOX_DEFAULT
 	release
 	end
 
-Route115_EventScript_1F29BA:: @ 81F29BA
-	special sub_80B4808
+Route115_EventScript_RegisterTimothy:: @ 81F29BA
+	special PlayerFaceTrainerAfterBattle
 	waitmovement 0
-	msgbox Route115_Text_29B2B3, 4
-	setvar VAR_0x8004, 307
-	special SetMatchCallRegisteredFlag
-	setorcopyvar VAR_0x8000, 307
-	callstd 8
+	msgbox Route115_Text_TimothyRegister, MSGBOX_DEFAULT
+	register_matchcall TRAINER_TIMOTHY_1
 	release
 	end
 
-Route115_EventScript_1F29D9:: @ 81F29D9
-	trainerbattle 5, TRAINER_TIMOTHY_1, 0, Route115_Text_29B32C, Route115_Text_29B372
-	msgbox Route115_Text_29B385, 6
+Route115_EventScript_RematchTimothy:: @ 81F29D9
+	trainerbattle_rematch TRAINER_TIMOTHY_1, Route115_Text_TimothyRematchIntro, Route115_Text_TimothyRematchDefeat
+	msgbox Route115_Text_TimothyPostRematch, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F29F0:: @ 81F29F0
-	trainerbattle 0, TRAINER_KOICHI, 0, Route115_Text_29B3CC, Route115_Text_29B3ED
-	msgbox Route115_Text_29B3FF, 6
+Route115_EventScript_Koichi:: @ 81F29F0
+	trainerbattle_single TRAINER_KOICHI, Route115_Text_KoichiIntro, Route115_Text_KoichiDefeat
+	msgbox Route115_Text_KoichiPostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2A07:: @ 81F2A07
-	trainerbattle 2, TRAINER_NOB_1, 0, Route115_Text_29B449, Route115_Text_29B480, Route115_EventScript_1F2A33
+Route115_EventScript_Nob:: @ 81F2A07
+	trainerbattle_single TRAINER_NOB_1, Route115_Text_NobIntro, Route115_Text_NobDefeat, Route115_EventScript_RegisterNob
 	specialvar VAR_RESULT, ShouldTryRematchBattle
-	compare VAR_RESULT, 1
-	goto_eq Route115_EventScript_1F2A52
-	msgbox Route115_Text_29B49D, 4
+	compare VAR_RESULT, TRUE
+	goto_if_eq Route115_EventScript_RematchNob
+	msgbox Route115_Text_NobPostBattle, MSGBOX_DEFAULT
 	release
 	end
 
-Route115_EventScript_1F2A33:: @ 81F2A33
-	special sub_80B4808
+Route115_EventScript_RegisterNob:: @ 81F2A33
+	special PlayerFaceTrainerAfterBattle
 	waitmovement 0
-	msgbox Route115_Text_29B50B, 4
-	setvar VAR_0x8004, 183
-	special SetMatchCallRegisteredFlag
-	setorcopyvar VAR_0x8000, 183
-	callstd 8
+	msgbox Route115_Text_NobRegister, MSGBOX_DEFAULT
+	register_matchcall TRAINER_NOB_1
 	release
 	end
 
-Route115_EventScript_1F2A52:: @ 81F2A52
-	trainerbattle 5, TRAINER_NOB_1, 0, Route115_Text_29B547, Route115_Text_29B59D
-	msgbox Route115_Text_29B5B5, 6
+Route115_EventScript_RematchNob:: @ 81F2A52
+	trainerbattle_rematch TRAINER_NOB_1, Route115_Text_NobRematchIntro, Route115_Text_NobRematchDefeat
+	msgbox Route115_Text_NobPostRematch, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2A69:: @ 81F2A69
-	trainerbattle 2, TRAINER_CYNDY_1, 0, Route115_Text_29B5EF, Route115_Text_29B62D, Route115_EventScript_1F2A95
+Route115_EventScript_Cyndy:: @ 81F2A69
+	trainerbattle_single TRAINER_CYNDY_1, Route115_Text_CyndyIntro, Route115_Text_CyndyDefeat, Route115_EventScript_RegisterCyndy
 	specialvar VAR_RESULT, ShouldTryRematchBattle
-	compare VAR_RESULT, 1
-	goto_eq Route115_EventScript_1F2AB4
-	msgbox Route115_Text_29B647, 4
+	compare VAR_RESULT, TRUE
+	goto_if_eq Route115_EventScript_RematchCyndy
+	msgbox Route115_Text_CyndyPostBattle, MSGBOX_DEFAULT
 	release
 	end
 
-Route115_EventScript_1F2A95:: @ 81F2A95
-	special sub_80B4808
+Route115_EventScript_RegisterCyndy:: @ 81F2A95
+	special PlayerFaceTrainerAfterBattle
 	waitmovement 0
-	msgbox Route115_Text_29B6AB, 4
-	setvar VAR_0x8004, 427
-	special SetMatchCallRegisteredFlag
-	setorcopyvar VAR_0x8000, 427
-	callstd 8
+	msgbox Route115_Text_CyndyRegister, MSGBOX_DEFAULT
+	register_matchcall TRAINER_CYNDY_1
 	release
 	end
 
-Route115_EventScript_1F2AB4:: @ 81F2AB4
-	trainerbattle 5, TRAINER_CYNDY_1, 0, Route115_Text_29B6FA, Route115_Text_29B71A
-	msgbox Route115_Text_29B737, 6
+Route115_EventScript_RematchCyndy:: @ 81F2AB4
+	trainerbattle_rematch TRAINER_CYNDY_1, Route115_Text_CyndyRematchIntro, Route115_Text_CyndyRematchDefeat
+	msgbox Route115_Text_CyndyPostRematch, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2ACB:: @ 81F2ACB
-	trainerbattle 0, TRAINER_HECTOR, 0, Route115_Text_29B78F, Route115_Text_29B7C5
-	msgbox Route115_Text_29B7EA, 6
+Route115_EventScript_Hector:: @ 81F2ACB
+	trainerbattle_single TRAINER_HECTOR, Route115_Text_HectorIntro, Route115_Text_HectorDefeat
+	msgbox Route115_Text_HectorPostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2AE2:: @ 81F2AE2
-	trainerbattle 0, TRAINER_KYRA, 0, Route115_Text_29B826, Route115_Text_29B85D
-	msgbox Route115_Text_29B869, 6
+Route115_EventScript_Kyra:: @ 81F2AE2
+	trainerbattle_single TRAINER_KYRA, Route115_Text_KyraIntro, Route115_Text_KyraDefeat
+	msgbox Route115_Text_KyraPostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2AF9:: @ 81F2AF9
-	trainerbattle 0, TRAINER_JAIDEN, 0, Route115_Text_29B8C1, Route115_Text_29B8E8
-	msgbox Route115_Text_29B904, 6
+Route115_EventScript_Jaiden:: @ 81F2AF9
+	trainerbattle_single TRAINER_JAIDEN, Route115_Text_JaidenIntro, Route115_Text_JaidenDefeat
+	msgbox Route115_Text_JaidenPostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2B10:: @ 81F2B10
-	trainerbattle 0, TRAINER_ALIX, 0, Route115_Text_29B9CB, Route115_Text_29B9F6
-	msgbox Route115_Text_29BA04, 6
+Route115_EventScript_Alix:: @ 81F2B10
+	trainerbattle_single TRAINER_ALIX, Route115_Text_AlixIntro, Route115_Text_AlixDefeat
+	msgbox Route115_Text_AlixPostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2B27:: @ 81F2B27
-	trainerbattle 0, TRAINER_HELENE, 0, Route115_Text_29B92D, Route115_Text_29B958
-	msgbox Route115_Text_29B971, 6
+Route115_EventScript_Helene:: @ 81F2B27
+	trainerbattle_single TRAINER_HELENE, Route115_Text_HeleneIntro, Route115_Text_HeleneDefeat
+	msgbox Route115_Text_HelenePostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_EventScript_1F2B3E:: @ 81F2B3E
-	trainerbattle 0, TRAINER_MARLENE, 0, Route115_Text_29BA2C, Route115_Text_29BA67
-	msgbox Route115_Text_29BA87, 6
+Route115_EventScript_Marlene:: @ 81F2B3E
+	trainerbattle_single TRAINER_MARLENE, Route115_Text_MarleneIntro, Route115_Text_MarleneDefeat
+	msgbox Route115_Text_MarlenePostBattle, MSGBOX_AUTOCLOSE
 	end
 
-Route115_Text_1F2B55: @ 81F2B55
-	.string "Exploring a cave isn’t like walking\n"
+Route115_Text_NeverKnowWhenCavePokemonWillAppear: @ 81F2B55
+	.string "Exploring a cave isn't like walking\n"
 	.string "on a road.\p"
 	.string "You never know when wild POKéMON will\n"
-	.string "appear. It’s full of suspense.$"
+	.string "appear. It's full of suspense.$"
 
-Route115_Text_1F2BC9: @ 81F2BC9
+Route115_Text_RouteSignRustboro: @ 81F2BC9
 	.string "ROUTE 115\n"
 	.string "{DOWN_ARROW} RUSTBORO CITY$"
 
-Route115_Text_1F2BE3: @ 81F2BE3
+Route115_Text_MeteorFallsSign: @ 81F2BE3
 	.string "METEOR FALLS\n"
 	.string "FALLARBOR TOWN THROUGH HERE$"
 

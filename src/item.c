@@ -1,7 +1,6 @@
 #include "global.h"
 #include "item.h"
 #include "berry.h"
-#include "constants/items.h"
 #include "string_util.h"
 #include "text.h"
 #include "event_data.h"
@@ -10,18 +9,28 @@
 #include "item_menu.h"
 #include "strings.h"
 #include "load_save.h"
+#include "item_use.h"
+#include "battle_pyramid.h"
 #include "battle_pyramid_bag.h"
+#include "constants/items.h"
+#include "constants/hold_effects.h"
+#include "constants/tv.h"
 
-extern bool8 InBattlePyramid(void);
 extern u16 gUnknown_0203CF30[];
-extern const struct Item gItems[];
 
 // this file's functions
+#if !defined(NONMATCHING) && MODERN
+#define static
+#endif
 static bool8 CheckPyramidBagHasItem(u16 itemId, u16 count);
 static bool8 CheckPyramidBagHasSpace(u16 itemId, u16 count);
 
 // EWRAM variables
 EWRAM_DATA struct BagPocket gBagPockets[POCKETS_COUNT] = {0};
+
+// rodata
+#include "data/text/item_descriptions.h"
+#include "data/items.h"
 
 // code
 static u16 GetBagItemQuantity(u16 *quantity)
@@ -134,7 +143,7 @@ bool8 CheckBagHasItem(u16 itemId, u16 count)
 
     if (ItemId_GetPocket(itemId) == 0)
         return FALSE;
-    if (InBattlePyramid() || FlagGet(FLAG_SPECIAL_FLAG_0x4004) == TRUE)
+    if (InBattlePyramid() || FlagGet(FLAG_STORING_ITEMS_IN_PYRAMID_BAG) == TRUE)
         return CheckPyramidBagHasItem(itemId, count);
     pocket = ItemId_GetPocket(itemId) - 1;
     // Check for item slots that contain the item
@@ -181,7 +190,7 @@ bool8 CheckBagHasSpace(u16 itemId, u16 count)
     if (ItemId_GetPocket(itemId) == POCKET_NONE)
         return FALSE;
 
-    if (InBattlePyramid() || FlagGet(FLAG_SPECIAL_FLAG_0x4004) == TRUE)
+    if (InBattlePyramid() || FlagGet(FLAG_STORING_ITEMS_IN_PYRAMID_BAG) == TRUE)
     {
         return CheckPyramidBagHasSpace(itemId, count);
     }
@@ -193,9 +202,9 @@ bool8 CheckBagHasSpace(u16 itemId, u16 count)
 
         pocket = ItemId_GetPocket(itemId) - 1;
         if (pocket != BERRIES_POCKET)
-            slotCapacity = 99;
+            slotCapacity = MAX_BAG_ITEM_CAPACITY;
         else
-            slotCapacity = 999;
+            slotCapacity = MAX_BERRY_CAPACITY;
 
         // Check space in any existing item slots that already contain this item
         for (i = 0; i < gBagPockets[pocket].capacity; i++)
@@ -239,152 +248,152 @@ NAKED
 bool8 CheckBagHasSpace(u16 itemId, u16 count)
 {
     asm_unified("push {r4-r7,lr}\n\
-	mov r7, r10\n\
-	mov r6, r9\n\
-	mov r5, r8\n\
-	push {r5-r7}\n\
-	sub sp, 0x4\n\
-	lsls r0, 16\n\
-	lsrs r0, 16\n\
-	mov r8, r0\n\
-	lsls r1, 16\n\
-	lsrs r5, r1, 16\n\
-	bl ItemId_GetPocket\n\
-	lsls r0, 24\n\
-	cmp r0, 0\n\
-	beq _080D6906\n\
-	bl InBattlePyramid\n\
-	lsls r0, 24\n\
-	cmp r0, 0\n\
-	bne _080D6838\n\
-	ldr r0, =0x00004004\n\
-	bl FlagGet\n\
-	lsls r0, 24\n\
-	lsrs r0, 24\n\
-	cmp r0, 0x1\n\
-	bne _080D684C\n\
+    mov r7, r10\n\
+    mov r6, r9\n\
+    mov r5, r8\n\
+    push {r5-r7}\n\
+    sub sp, 0x4\n\
+    lsls r0, 16\n\
+    lsrs r0, 16\n\
+    mov r8, r0\n\
+    lsls r1, 16\n\
+    lsrs r5, r1, 16\n\
+    bl ItemId_GetPocket\n\
+    lsls r0, 24\n\
+    cmp r0, 0\n\
+    beq _080D6906\n\
+    bl InBattlePyramid\n\
+    lsls r0, 24\n\
+    cmp r0, 0\n\
+    bne _080D6838\n\
+    ldr r0, =0x00004004\n\
+    bl FlagGet\n\
+    lsls r0, 24\n\
+    lsrs r0, 24\n\
+    cmp r0, 0x1\n\
+    bne _080D684C\n\
 _080D6838:\n\
-	mov r0, r8\n\
-	adds r1, r5, 0\n\
-	bl CheckPyramidBagHasSpace\n\
-	lsls r0, 24\n\
-	lsrs r0, 24\n\
-	b _080D6916\n\
-	.pool\n\
+    mov r0, r8\n\
+    adds r1, r5, 0\n\
+    bl CheckPyramidBagHasSpace\n\
+    lsls r0, 24\n\
+    lsrs r0, 24\n\
+    b _080D6916\n\
+    .pool\n\
 _080D684C:\n\
-	mov r0, r8\n\
-	bl ItemId_GetPocket\n\
-	subs r0, 0x1\n\
-	lsls r0, 24\n\
-	lsrs r2, r0, 24\n\
-	ldr r7, =0x000003e7\n\
-	cmp r2, 0x3\n\
-	beq _080D6860\n\
-	movs r7, 0x63\n\
+    mov r0, r8\n\
+    bl ItemId_GetPocket\n\
+    subs r0, 0x1\n\
+    lsls r0, 24\n\
+    lsrs r2, r0, 24\n\
+    ldr r7, =0x000003e7\n\
+    cmp r2, 0x3\n\
+    beq _080D6860\n\
+    movs r7, 0x63\n\
 _080D6860:\n\
-	movs r6, 0\n\
-	ldr r1, =gBagPockets\n\
-	lsls r4, r2, 3\n\
-	adds r0, r4, r1\n\
-	mov r9, r4\n\
-	ldrb r0, [r0, 0x4]\n\
-	cmp r6, r0\n\
-	bcs _080D68BC\n\
-	subs r0, r2, 0x2\n\
-	lsls r0, 24\n\
-	lsrs r0, 24\n\
-	mov r10, r0\n\
+    movs r6, 0\n\
+    ldr r1, =gBagPockets\n\
+    lsls r4, r2, 3\n\
+    adds r0, r4, r1\n\
+    mov r9, r4\n\
+    ldrb r0, [r0, 0x4]\n\
+    cmp r6, r0\n\
+    bcs _080D68BC\n\
+    subs r0, r2, 0x2\n\
+    lsls r0, 24\n\
+    lsrs r0, 24\n\
+    mov r10, r0\n\
 _080D6878:\n\
-	adds r0, r4, r1\n\
-	ldr r1, [r0]\n\
-	lsls r0, r6, 2\n\
-	adds r1, r0, r1\n\
-	ldrh r0, [r1]\n\
-	cmp r0, r8\n\
-	bne _080D68AC\n\
-	adds r0, r1, 0x2\n\
-	str r2, [sp]\n\
-	bl GetBagItemQuantity\n\
-	lsls r0, 16\n\
-	lsrs r1, r0, 16\n\
-	adds r0, r1, r5\n\
-	ldr r2, [sp]\n\
-	cmp r0, r7\n\
-	ble _080D6914\n\
-	mov r0, r10\n\
-	cmp r0, 0x1\n\
-	bls _080D6906\n\
-	subs r0, r7, r1\n\
-	subs r0, r5, r0\n\
-	lsls r0, 16\n\
-	lsrs r5, r0, 16\n\
-	cmp r5, 0\n\
-	beq _080D6914\n\
+    adds r0, r4, r1\n\
+    ldr r1, [r0]\n\
+    lsls r0, r6, 2\n\
+    adds r1, r0, r1\n\
+    ldrh r0, [r1]\n\
+    cmp r0, r8\n\
+    bne _080D68AC\n\
+    adds r0, r1, 0x2\n\
+    str r2, [sp]\n\
+    bl GetBagItemQuantity\n\
+    lsls r0, 16\n\
+    lsrs r1, r0, 16\n\
+    adds r0, r1, r5\n\
+    ldr r2, [sp]\n\
+    cmp r0, r7\n\
+    ble _080D6914\n\
+    mov r0, r10\n\
+    cmp r0, 0x1\n\
+    bls _080D6906\n\
+    subs r0, r7, r1\n\
+    subs r0, r5, r0\n\
+    lsls r0, 16\n\
+    lsrs r5, r0, 16\n\
+    cmp r5, 0\n\
+    beq _080D6914\n\
 _080D68AC:\n\
-	adds r0, r6, 0x1\n\
-	lsls r0, 24\n\
-	lsrs r6, r0, 24\n\
-	ldr r1, =gBagPockets\n\
-	adds r0, r4, r1\n\
-	ldrb r0, [r0, 0x4]\n\
-	cmp r6, r0\n\
-	bcc _080D6878\n\
+    adds r0, r6, 0x1\n\
+    lsls r0, 24\n\
+    lsrs r6, r0, 24\n\
+    ldr r1, =gBagPockets\n\
+    adds r0, r4, r1\n\
+    ldrb r0, [r0, 0x4]\n\
+    cmp r6, r0\n\
+    bcc _080D6878\n\
 _080D68BC:\n\
-	cmp r5, 0\n\
-	beq _080D6914\n\
-	movs r6, 0\n\
-	ldr r3, =gBagPockets\n\
-	mov r1, r9\n\
-	adds r0, r1, r3\n\
-	ldrb r0, [r0, 0x4]\n\
-	cmp r6, r0\n\
-	bcs _080D6902\n\
-	adds r4, r3, 0\n\
-	subs r0, r2, 0x2\n\
-	lsls r0, 24\n\
-	lsrs r2, r0, 24\n\
+    cmp r5, 0\n\
+    beq _080D6914\n\
+    movs r6, 0\n\
+    ldr r3, =gBagPockets\n\
+    mov r1, r9\n\
+    adds r0, r1, r3\n\
+    ldrb r0, [r0, 0x4]\n\
+    cmp r6, r0\n\
+    bcs _080D6902\n\
+    adds r4, r3, 0\n\
+    subs r0, r2, 0x2\n\
+    lsls r0, 24\n\
+    lsrs r2, r0, 24\n\
 _080D68D6:\n\
-	adds r0, r1, r4\n\
-	ldr r1, [r0]\n\
-	lsls r0, r6, 2\n\
-	adds r0, r1\n\
-	ldrh r0, [r0]\n\
-	cmp r0, 0\n\
-	bne _080D68F2\n\
-	cmp r5, r7\n\
-	bls _080D6914\n\
-	cmp r2, 0x1\n\
-	bls _080D6906\n\
-	subs r0, r5, r7\n\
-	lsls r0, 16\n\
-	lsrs r5, r0, 16\n\
+    adds r0, r1, r4\n\
+    ldr r1, [r0]\n\
+    lsls r0, r6, 2\n\
+    adds r0, r1\n\
+    ldrh r0, [r0]\n\
+    cmp r0, 0\n\
+    bne _080D68F2\n\
+    cmp r5, r7\n\
+    bls _080D6914\n\
+    cmp r2, 0x1\n\
+    bls _080D6906\n\
+    subs r0, r5, r7\n\
+    lsls r0, 16\n\
+    lsrs r5, r0, 16\n\
 _080D68F2:\n\
-	adds r0, r6, 0x1\n\
-	lsls r0, 24\n\
-	lsrs r6, r0, 24\n\
-	mov r1, r9\n\
-	adds r0, r1, r3\n\
-	ldrb r0, [r0, 0x4]\n\
-	cmp r6, r0\n\
-	bcc _080D68D6\n\
+    adds r0, r6, 0x1\n\
+    lsls r0, 24\n\
+    lsrs r6, r0, 24\n\
+    mov r1, r9\n\
+    adds r0, r1, r3\n\
+    ldrb r0, [r0, 0x4]\n\
+    cmp r6, r0\n\
+    bcc _080D68D6\n\
 _080D6902:\n\
-	cmp r5, 0\n\
-	beq _080D6914\n\
+    cmp r5, 0\n\
+    beq _080D6914\n\
 _080D6906:\n\
-	movs r0, 0\n\
-	b _080D6916\n\
-	.pool\n\
+    movs r0, 0\n\
+    b _080D6916\n\
+    .pool\n\
 _080D6914:\n\
-	movs r0, 0x1\n\
+    movs r0, 0x1\n\
 _080D6916:\n\
-	add sp, 0x4\n\
-	pop {r3-r5}\n\
-	mov r8, r3\n\
-	mov r9, r4\n\
-	mov r10, r5\n\
-	pop {r4-r7}\n\
-	pop {r1}\n\
-	bx r1");
+    add sp, 0x4\n\
+    pop {r3-r5}\n\
+    mov r8, r3\n\
+    mov r9, r4\n\
+    mov r10, r5\n\
+    pop {r4-r7}\n\
+    pop {r1}\n\
+    bx r1");
 }
 #endif // NONMATCHING
 
@@ -396,7 +405,7 @@ bool8 AddBagItem(u16 itemId, u16 count)
         return FALSE;
 
     // check Battle Pyramid Bag
-    if (InBattlePyramid() || FlagGet(FLAG_SPECIAL_FLAG_0x4004) == TRUE)
+    if (InBattlePyramid() || FlagGet(FLAG_STORING_ITEMS_IN_PYRAMID_BAG) == TRUE)
     {
         return AddPyramidBagItem(itemId, count);
     }
@@ -413,9 +422,9 @@ bool8 AddBagItem(u16 itemId, u16 count)
         memcpy(newItems, itemPocket->itemSlots, itemPocket->capacity * sizeof(struct ItemSlot));
 
         if (pocket != BERRIES_POCKET)
-            slotCapacity = 99;
+            slotCapacity = MAX_BAG_ITEM_CAPACITY;
         else
-            slotCapacity = 999;
+            slotCapacity = MAX_BERRY_CAPACITY;
 
         for (i = 0; i < itemPocket->capacity; i++)
         {
@@ -509,7 +518,7 @@ bool8 RemoveBagItem(u16 itemId, u16 count)
         return FALSE;
 
     // check Battle Pyramid Bag
-    if (InBattlePyramid() || FlagGet(FLAG_SPECIAL_FLAG_0x4004) == TRUE)
+    if (InBattlePyramid() || FlagGet(FLAG_STORING_ITEMS_IN_PYRAMID_BAG) == TRUE)
     {
         return RemovePyramidBagItem(itemId, count);
     }
@@ -532,13 +541,13 @@ bool8 RemoveBagItem(u16 itemId, u16 count)
         if (totalQuantity < count)
             return FALSE;   // We don't have enough of the item
 
-        if (CurrentMapIsSecretBase() == TRUE)
+        if (CurMapIsSecretBase() == TRUE)
         {
-            VarSet(VAR_0x40EE, VarGet(VAR_0x40EE) | 0x200);
-            VarSet(VAR_0x40ED, itemId);
+            VarSet(VAR_SECRET_BASE_LOW_TV_FLAGS, VarGet(VAR_SECRET_BASE_LOW_TV_FLAGS) | SECRET_BASE_USED_BAG);
+            VarSet(VAR_SECRET_BASE_LAST_ITEM_USED, itemId);
         }
 
-        var = sub_81ABB2C(pocket);
+        var = GetItemListPosition(pocket);
         if (itemPocket->capacity > var
          && itemPocket->itemSlots[var].itemId == itemId)
         {
@@ -658,15 +667,15 @@ bool8 AddPCItem(u16 itemId, u16 count)
         if (newItems[i].itemId == itemId)
         {
             ownedCount = GetPCItemQuantity(&newItems[i].quantity);
-            if (ownedCount + count <= 999)
+            if (ownedCount + count <= MAX_PC_ITEM_CAPACITY)
             {
                 SetPCItemQuantity(&newItems[i].quantity, ownedCount + count);
                 memcpy(gSaveBlock1Ptr->pcItems, newItems, sizeof(gSaveBlock1Ptr->pcItems));
                 Free(newItems);
                 return TRUE;
             }
-            count += ownedCount - 999;
-            SetPCItemQuantity(&newItems[i].quantity, 999);
+            count += ownedCount - MAX_PC_ITEM_CAPACITY;
+            SetPCItemQuantity(&newItems[i].quantity, MAX_PC_ITEM_CAPACITY);
             if (count == 0)
             {
                 memcpy(gSaveBlock1Ptr->pcItems, newItems, sizeof(gSaveBlock1Ptr->pcItems));
@@ -874,10 +883,10 @@ static bool8 CheckPyramidBagHasSpace(u16 itemId, u16 count)
     {
         if (items[i] == itemId || items[i] == ITEM_NONE)
         {
-            if (quantities[i] + count <= 99)
+            if (quantities[i] + count <= MAX_BAG_ITEM_CAPACITY)
                 return TRUE;
 
-            count = (quantities[i] + count) - 99;
+            count = (quantities[i] + count) - MAX_BAG_ITEM_CAPACITY;
             if (count == 0)
                 return TRUE;
         }
@@ -901,13 +910,13 @@ bool8 AddPyramidBagItem(u16 itemId, u16 count)
 
     for (i = 0; i < PYRAMID_BAG_ITEMS_COUNT; i++)
     {
-        if (newItems[i] == itemId && newQuantities[i] < 99)
+        if (newItems[i] == itemId && newQuantities[i] < MAX_BAG_ITEM_CAPACITY)
         {
             newQuantities[i] += count;
-            if (newQuantities[i] > 99)
+            if (newQuantities[i] > MAX_BAG_ITEM_CAPACITY)
             {
-                count = newQuantities[i] - 99;
-                newQuantities[i] = 99;
+                count = newQuantities[i] - MAX_BAG_ITEM_CAPACITY;
+                newQuantities[i] = MAX_BAG_ITEM_CAPACITY;
             }
             else
             {
@@ -927,10 +936,10 @@ bool8 AddPyramidBagItem(u16 itemId, u16 count)
             {
                 newItems[i] = itemId;
                 newQuantities[i] = count;
-                if (newQuantities[i] > 99)
+                if (newQuantities[i] > MAX_BAG_ITEM_CAPACITY)
                 {
-                    count = newQuantities[i] - 99;
-                    newQuantities[i] = 99;
+                    count = newQuantities[i] - MAX_BAG_ITEM_CAPACITY;
+                    newQuantities[i] = MAX_BAG_ITEM_CAPACITY;
                 }
                 else
                 {

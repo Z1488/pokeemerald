@@ -27,8 +27,10 @@
 #include "battle.h"
 #include "link.h"
 #include "link_rfu.h"
+#include "constants/rgb.h"
+#include "constants/trade.h"
 
-extern u16 gUnknown_03005DA8;
+extern u16 gHeldKeyCodeToSend;
 
 // Static type declarations
 
@@ -51,22 +53,21 @@ struct LinkTestBGInfo
 
 // Static RAM declarations
 
-IWRAM_DATA struct BlockTransfer sBlockSend;
-IWRAM_DATA u32 link_c_unused_03000d1c;
-IWRAM_DATA struct BlockTransfer sBlockRecv[MAX_LINK_PLAYERS];
-IWRAM_DATA u32 sBlockSendDelayCounter;
-IWRAM_DATA u32 gUnknown_03000D54;
-IWRAM_DATA u8 gUnknown_03000D58;
-IWRAM_DATA u32 sPlayerDataExchangeStatus;
-IWRAM_DATA u32 gUnknown_03000D60;
-IWRAM_DATA u8 sLinkTestLastBlockSendPos;
-ALIGNED() IWRAM_DATA u8 sLinkTestLastBlockRecvPos[MAX_LINK_PLAYERS];
-IWRAM_DATA u8 sNumVBlanksWithoutSerialIntr;
-IWRAM_DATA bool8 sSendBufferEmpty;
-IWRAM_DATA u16 sSendNonzeroCheck;
-IWRAM_DATA u16 sRecvNonzeroCheck;
-IWRAM_DATA u8 sChecksumAvailable;
-IWRAM_DATA u8 sHandshakePlayerCount;
+static struct BlockTransfer sBlockSend;
+static struct BlockTransfer sBlockRecv[MAX_LINK_PLAYERS];
+static u32 sBlockSendDelayCounter;
+static u32 gUnknown_03000D54;
+static u8 gUnknown_03000D58;
+static u32 sPlayerDataExchangeStatus;
+static u32 gUnknown_03000D60;
+static u8 sLinkTestLastBlockSendPos;
+static u8 sLinkTestLastBlockRecvPos[MAX_LINK_PLAYERS];
+static u8 sNumVBlanksWithoutSerialIntr;
+static bool8 sSendBufferEmpty;
+static u16 sSendNonzeroCheck;
+static u16 sRecvNonzeroCheck;
+static u8 sChecksumAvailable;
+static u8 sHandshakePlayerCount;
 
 u16 gLinkPartnersHeldKeys[6];
 u32 gLinkDebugSeed;
@@ -212,10 +213,9 @@ const struct WindowTemplate gUnknown_082ED204[] = {
     {0x00, 0x00, 0x0D, 0x1E, 0x07, 0x0F, 0x016A},
     DUMMY_WIN_TEMPLATE
 };
-const u8 gUnknown_082ED224[] = {
-    0x00, 0x01, 0x02, 0x00,
-    0xff, 0xfe, 0xff, 0x00
-};
+
+static const u8 sTextColors[] = { TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE, TEXT_COLOR_DARK_GREY };
+static const u8 sUnused_082ED224[] = {0x00, 0xff, 0xfe, 0xff, 0x00};
 
 // .text
 
@@ -223,7 +223,7 @@ bool8 IsWirelessAdapterConnected(void)
 {
     sub_800B488();
     sub_800E700();
-    if (sub_800BEC0() == 0x8001)
+    if (rfu_LMAN_REQBN_softReset_and_checkID() == 0x8001)
     {
         rfu_REQ_stopMode();
         rfu_waitREQComplete();
@@ -282,7 +282,7 @@ void LinkTestScreen(void)
     ResetTasks();
     SetVBlankCallback(sub_80096BC);
     ResetBlockSend();
-    gLinkType = 0x1111;
+    gLinkType = LINKTYPE_0x1111;
     OpenLink();
     SeedRng(gMain.vblankCounter2);
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
@@ -302,9 +302,9 @@ void LinkTestScreen(void)
     SetMainCallback2(CB2_LinkTest);
 }
 
-void sub_8009628(u8 a0)
+void SetLocalLinkPlayerId(u8 playerId)
 {
-    gLocalLinkPlayer.id = a0;
+    gLocalLinkPlayer.id = playerId;
 }
 
 static void InitLocalLinkPlayer(void)
@@ -316,10 +316,10 @@ static void InitLocalLinkPlayer(void)
     gLocalLinkPlayer.language = gGameLanguage;
     gLocalLinkPlayer.version = gGameVersion + 0x4000;
     gLocalLinkPlayer.lp_field_2 = 0x8000;
-    gLocalLinkPlayer.name[8] = IsNationalPokedexEnabled();
-    if (FlagGet(FLAG_0x87F))
+    gLocalLinkPlayer.progressFlags = IsNationalPokedexEnabled();
+    if (FlagGet(FLAG_IS_CHAMPION))
     {
-        gLocalLinkPlayer.name[8] |= 0x10;
+        gLocalLinkPlayer.progressFlags |= 0x10;
     }
 }
 
@@ -444,7 +444,7 @@ static void LinkTestProcessKeyInput(void)
     }
     if (gMain.newKeys & L_BUTTON)
     {
-        BeginNormalPaletteFade(0xFFFFFFFF, 0, 16, 0, 2);
+        BeginNormalPaletteFade(0xFFFFFFFF, 0, 16, 0, RGB(2, 0, 0));
     }
     if (gMain.newKeys & START_BUTTON)
     {
@@ -452,7 +452,7 @@ static void LinkTestProcessKeyInput(void)
     }
     if (gMain.newKeys & R_BUTTON)
     {
-        TrySavingData(1);
+        TrySavingData(SAVE_LINK);
     }
     if (gMain.newKeys & SELECT_BUTTON)
     {
@@ -597,9 +597,9 @@ static void ProcessRecvCmds(u8 unused)
                         *linkPlayer = block->linkPlayer;
                         if ((linkPlayer->version & 0xFF) == VERSION_RUBY || (linkPlayer->version & 0xFF) == VERSION_SAPPHIRE)
                         {
-                            linkPlayer->name[10] = 0;
-                            linkPlayer->name[9] = 0;
-                            linkPlayer->name[8] = 0;
+                            linkPlayer->progressFlagsCopy = 0;
+                            linkPlayer->neverRead = 0;
+                            linkPlayer->progressFlags = 0;
                         }
                         sub_800B524(linkPlayer);
                         if (strcmp(block->magic1, gASCIIGameFreakInc) != 0
@@ -695,12 +695,12 @@ static void BuildSendCmd(u16 command)
             gSendCmd[0] = LINKCMD_0x5566;
             break;
         case LINKCMD_SEND_HELD_KEYS_2:
-            if (gUnknown_03005DA8 == 0 || gLinkTransferringData)
+            if (gHeldKeyCodeToSend == 0 || gLinkTransferringData)
             {
                 break;
             }
             gSendCmd[0] = LINKCMD_SEND_HELD_KEYS_2;
-            gSendCmd[1] = gUnknown_03005DA8;
+            gSendCmd[1] = gHeldKeyCodeToSend;
             break;
     }
 }
@@ -714,11 +714,11 @@ void sub_8009F18(void)
     gLinkCallback = sub_8009F70;
 }
 
-bool32 sub_8009F3C(void)
+bool32 IsSendingKeysToLink(void)
 {
     if (gWirelessCommType)
     {
-        return sub_800F7E4();
+        return IsSendingKeysToRfu();
     }
     if (gLinkCallback == sub_8009F70)
     {
@@ -739,7 +739,7 @@ void ClearLinkCallback(void)
 {
     if (gWirelessCommType)
     {
-        Rfu_set_zero();
+        ClearLinkRfuCallback();
     }
     else
     {
@@ -751,7 +751,7 @@ void ClearLinkCallback_2(void)
 {
     if (gWirelessCommType)
     {
-        Rfu_set_zero();
+        ClearLinkRfuCallback();
     }
     else
     {
@@ -862,15 +862,15 @@ u8 GetLinkPlayerDataExchangeStatusTimed(int lower, int upper)
             {
                 if (gLinkPlayers[0].linkType == 0x1133)
                 {
-                    switch (sub_807A728())
+                    switch (GetGameProgressForLinkTrade())
                     {
-                        case 1:
-                            sPlayerDataExchangeStatus = EXCHANGE_STAT_4;
+                        case TRADE_PLAYER_NOT_READY:
+                            sPlayerDataExchangeStatus = EXCHANGE_PLAYER_NOT_READY;
                             break;
-                        case 2:
-                            sPlayerDataExchangeStatus = EXCHANGE_STAT_5;
+                        case TRADE_PARTNER_NOT_READY:
+                            sPlayerDataExchangeStatus = EXCHANGE_PARTNER_NOT_READY;
                             break;
-                        case 0:
+                        case TRADE_BOTH_PLAYERS_READY:
                             sPlayerDataExchangeStatus = EXCHANGE_COMPLETE;
                             break;
                     }
@@ -1080,11 +1080,11 @@ bool8 sub_800A4D8(u8 a0)
     return FALSE;
 }
 
-bool8 sub_800A520(void)
+bool8 IsLinkTaskFinished(void)
 {
     if (gWirelessCommType == TRUE)
     {
-        return sub_8010500();
+        return IsLinkRfuTaskFinished();
     }
     return gLinkCallback == NULL;
 }
@@ -1142,7 +1142,7 @@ void ResetBlockReceivedFlag(u8 who)
     }
 }
 
-void sub_800A620(void)
+void CheckShouldAdvanceLinkState(void)
 {
     if ((gLinkStatus & LINK_STAT_MASTER) && EXTRACT_PLAYER_COUNT(gLinkStatus) > 1)
     {
@@ -1327,7 +1327,9 @@ void sub_800AA04(u8 a0)
     }
 }
 
-u8 sub_800AA48(void)
+// The number of players when trading began. This is frequently compared against the
+// current number of connected players to check if anyone dropped out.
+u8 GetSavedPlayerCount(void)
 {
     return gSavedLinkPlayerCount;
 }
@@ -1347,7 +1349,7 @@ bool8 sub_800AA60(void)
     {
         if (gLinkPlayers[i].trainerId == gSavedLinkPlayers[i].trainerId)
         {
-            if (gLinkType == 0x2288)
+            if (gLinkType == LINKTYPE_BATTLE_TOWER)
             {
                 if (gLinkType == gLinkPlayers[i].linkType)
                 {
@@ -1396,7 +1398,7 @@ void sub_800AB18(void)
     }
 }
 
-void sub_800AB98(void)
+void ResetLinkPlayerCount(void)
 {
     gSavedLinkPlayerCount = 0;
     gSavedMultiplayerId = 0;
@@ -1683,10 +1685,10 @@ static void sub_800B080(void)
     CopyToBgTilemapBuffer(1, gWirelessLinkDisplayTilemap, 0, 0);
     CopyBgTilemapBufferToVram(1);
     LoadPalette(gWirelessLinkDisplayPal, 0, 0x20);
-    FillWindowPixelBuffer(0, 0x00);
-    FillWindowPixelBuffer(2, 0x00);
-    AddTextPrinterParameterized3(0, 3, 2, 6, gUnknown_082ED224, 0, gText_CommErrorEllipsis);
-    AddTextPrinterParameterized3(2, 3, 2, 1, gUnknown_082ED224, 0, gText_MoveCloserToLinkPartner);
+    FillWindowPixelBuffer(0, PIXEL_FILL(0));
+    FillWindowPixelBuffer(2, PIXEL_FILL(0));
+    AddTextPrinterParameterized3(0, 3, 2, 6, sTextColors, 0, gText_CommErrorEllipsis);
+    AddTextPrinterParameterized3(2, 3, 2, 1, sTextColors, 0, gText_MoveCloserToLinkPartner);
     PutWindowTilemap(0);
     PutWindowTilemap(2);
     CopyWindowToVram(0, 0);
@@ -1696,9 +1698,9 @@ static void sub_800B080(void)
 static void sub_800B138(void)
 {
     LoadBgTiles(0, g2BlankTilesGfx, 0x20, 0);
-    FillWindowPixelBuffer(1, 0x00);
-    FillWindowPixelBuffer(2, 0x00);
-    AddTextPrinterParameterized3(1, 3, 2, 0, gUnknown_082ED224, 0, gText_CommErrorCheckConnections);
+    FillWindowPixelBuffer(1, PIXEL_FILL(0));
+    FillWindowPixelBuffer(2, PIXEL_FILL(0));
+    AddTextPrinterParameterized3(1, 3, 2, 0, sTextColors, 0, gText_CommErrorCheckConnections);
     PutWindowTilemap(1);
     PutWindowTilemap(2);
     CopyWindowToVram(1, 0);
@@ -1738,11 +1740,11 @@ static void CB2_PrintErrorMessage(void)
         case 130:
             if (gWirelessCommType == 2)
             {
-                AddTextPrinterParameterized3(0, 3, 2, 20, gUnknown_082ED224, 0, gText_ABtnTitleScreen);
+                AddTextPrinterParameterized3(0, 3, 2, 20, sTextColors, 0, gText_ABtnTitleScreen);
             }
             else if (gWirelessCommType == 1)
             {
-                AddTextPrinterParameterized3(0, 3, 2, 20, gUnknown_082ED224, 0, gText_ABtnRegistrationCounter);
+                AddTextPrinterParameterized3(0, 3, 2, 20, sTextColors, 0, gText_ABtnRegistrationCounter);
             }
             break;
     }
@@ -1849,7 +1851,7 @@ bool8 HandleLinkConnection(void)
         r5 = sub_8010F1C();
         if (sub_808766C() == TRUE)
         {
-            if (r4 == TRUE || sub_800F0B8() || r5)
+            if (r4 == TRUE || IsRfuRecvQueueEmpty() || r5)
             {
                 return TRUE;
             }
@@ -1882,32 +1884,33 @@ void sub_800B4C0(void)
     }
 }
 
-u32 sub_800B4DC(void)
+u32 GetLinkRecvQueueLength(void)
 {
     if (gWirelessCommType != 0)
     {
-        return sub_80124D4();
+        return GetRfuRecvQueueLength();
     }
     return gLink.recvQueue.count;
 }
 
-bool8 sub_800B504(void)
+bool32 sub_800B504(void)
 {
-    if (sub_800B4DC() > 2)
+    if (GetLinkRecvQueueLength() > 2)
     {
         return TRUE;
     }
     return FALSE;
 }
 
-u8 sub_800B518(void)
+// Unused
+u8 GetWirelessCommType(void)
 {
     return gWirelessCommType;
 }
 
 void sub_800B524(struct LinkPlayer *player)
 {
-    player->name[10] = player->name[8];
+    player->progressFlagsCopy = player->progressFlags;
     ConvertInternationalString(player->name, player->language);
 }
 

@@ -19,6 +19,7 @@
 #include "constants/species.h"
 #include "malloc.h"
 #include "easy_chat.h"
+#include "constants/rgb.h"
 
 extern const u16 gMailPalette_Orange[];
 extern const u16 gMailPalette_Harbor[];
@@ -102,7 +103,7 @@ struct MailRead
     /*0x021d*/ u8 language;
     /*0x021e*/ bool8 playerIsSender;
     /*0x0220*/ u8 * (*parserSingle)(u8 *dest, u16 word);
-    /*0x0224*/ void (*parserMultiple)(u8 *dest, const u16 *src, u16 length1, u16 length2);
+    /*0x0224*/ u8 * (*parserMultiple)(u8 *dest, const u16 *src, u16 length1, u16 length2);
     /*0x0228*/ const struct MailLayout *layout;
     /*0x022c*/ u8 bg1TilemapBuffer[0x1000];
     /*0x122c*/ u8 bg2TilemapBuffer[0x1000];
@@ -157,10 +158,10 @@ static const struct WindowTemplate sUnknown_0859F29C[] = {
     DUMMY_WIN_TEMPLATE
 };
 
-static const u8 sUnknown_0859F2AC[] = {
-     0,
-    10,
-    11
+static const u8 sTextColors[] = {
+    TEXT_COLOR_TRANSPARENT,
+    TEXT_DYNAMIC_COLOR_1,
+    TEXT_DYNAMIC_COLOR_2
 };
 
 static const u16 sUnknown_0859F2B0[][2] = {
@@ -170,29 +171,29 @@ static const u16 sUnknown_0859F2B0[][2] = {
 
 static const struct MailGraphics sUnknown_0859F2B8[] = {
     {
-        gMailPalette_Orange, gMailTiles_Orange, gMailTilemap_Orange, 0x02c0, 0x0000, 0x294a, 0x6739
+        gMailPalette_Orange, gMailTiles_Orange, gMailTilemap_Orange, 0x02c0, 0, 0x294a, 0x6739
     }, {
-        gMailPalette_Harbor, gMailTiles_Harbor, gMailTilemap_Harbor, 0x02e0, 0x0000, 0x7fff, 0x4631
+        gMailPalette_Harbor, gMailTiles_Harbor, gMailTilemap_Harbor, 0x02e0, 0, 0x7fff, 0x4631
     }, {
-        gMailPalette_Glitter, gMailTiles_Glitter, gMailTilemap_Glitter, 0x0400, 0x0000, 0x294a, 0x6739
+        gMailPalette_Glitter, gMailTiles_Glitter, gMailTilemap_Glitter, 0x0400, 0, 0x294a, 0x6739
     }, {
-        gMailPalette_Mech, gMailTiles_Mech, gMailTilemap_Mech, 0x01e0, 0x0000, 0x7fff, 0x4631
+        gMailPalette_Mech, gMailTiles_Mech, gMailTilemap_Mech, 0x01e0, 0, 0x7fff, 0x4631
     }, {
-        gMailPalette_Wood, gMailTiles_Wood, gMailTilemap_Wood, 0x02e0, 0x0000, 0x7fff, 0x4631
+        gMailPalette_Wood, gMailTiles_Wood, gMailTilemap_Wood, 0x02e0, 0, 0x7fff, 0x4631
     }, {
-        gMailPalette_Wave, gMailTiles_Wave, gMailTilemap_Wave, 0x0300, 0x0000, 0x294a, 0x6739
+        gMailPalette_Wave, gMailTiles_Wave, gMailTilemap_Wave, 0x0300, 0, 0x294a, 0x6739
     }, {
-        gMailPalette_Bead, gMailTiles_Bead, gMailTilemap_Bead, 0x0140, 0x0000, 0x7fff, 0x4631
+        gMailPalette_Bead, gMailTiles_Bead, gMailTilemap_Bead, 0x0140, 0, 0x7fff, 0x4631
     }, {
-        gMailPalette_Shadow, gMailTiles_Shadow, gMailTilemap_Shadow, 0x0300, 0x0000, 0x7fff, 0x4631
+        gMailPalette_Shadow, gMailTiles_Shadow, gMailTilemap_Shadow, 0x0300, 0, 0x7fff, 0x4631
     }, {
-        gMailPalette_Tropic, gMailTiles_Tropic, gMailTilemap_Tropic, 0x0220, 0x0000, 0x294a, 0x6739
+        gMailPalette_Tropic, gMailTiles_Tropic, gMailTilemap_Tropic, 0x0220, 0, 0x294a, 0x6739
     }, {
-        gMailPalette_Dream, gMailTiles_Dream, gMailTilemap_Dream, 0x0340, 0x0000, 0x294a, 0x6739
+        gMailPalette_Dream, gMailTiles_Dream, gMailTilemap_Dream, 0x0340, 0, 0x294a, 0x6739
     }, {
-        gMailPalette_Fab, gMailTiles_Fab, gMailTilemap_Fab, 0x02a0, 0x0000, 0x294a, 0x6739
+        gMailPalette_Fab, gMailTiles_Fab, gMailTilemap_Fab, 0x02a0, 0, 0x294a, 0x6739
     }, {
-        gMailPalette_Retro, gMailTiles_Retro, gMailTilemap_Retro, 0x0520, 0x0000, 0x294a, 0x6739
+        gMailPalette_Retro, gMailTiles_Retro, gMailTilemap_Retro, 0x0520, 0, 0x294a, 0x6739
     }
 };
 
@@ -306,7 +307,7 @@ static bool8 MailReadBuildGraphics(void)
         case 0:
             SetVBlankCallback(NULL);
             ScanlineEffect_Stop();
-            SetGpuReg(REG_OFFSET_DISPCNT, 0x0000);
+            SetGpuReg(REG_OFFSET_DISPCNT, 0);
             break;
         case 1:
             CpuFill16(0, (void *)OAM, OAM_SIZE);
@@ -323,16 +324,16 @@ static bool8 MailReadBuildGraphics(void)
         case 5:
             FreeAllSpritePalettes();
             reset_temp_tile_data_buffers();
-            SetGpuReg(REG_OFFSET_BG0HOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG0VOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG1HOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG1VOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG2VOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG2HOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG3HOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BG3VOFS, 0x0000);
-            SetGpuReg(REG_OFFSET_BLDCNT,  0x0000);
-            SetGpuReg(REG_OFFSET_BLDALPHA, 0x0000);
+            SetGpuReg(REG_OFFSET_BG0HOFS, 0);
+            SetGpuReg(REG_OFFSET_BG0VOFS, 0);
+            SetGpuReg(REG_OFFSET_BG1HOFS, 0);
+            SetGpuReg(REG_OFFSET_BG1VOFS, 0);
+            SetGpuReg(REG_OFFSET_BG2VOFS, 0);
+            SetGpuReg(REG_OFFSET_BG2HOFS, 0);
+            SetGpuReg(REG_OFFSET_BG3HOFS, 0);
+            SetGpuReg(REG_OFFSET_BG3VOFS, 0);
+            SetGpuReg(REG_OFFSET_BLDCNT,  0);
+            SetGpuReg(REG_OFFSET_BLDALPHA, 0);
             break;
         case 6:
             ResetBgsAndClearDma3BusyFlags(0);
@@ -417,7 +418,7 @@ static bool8 MailReadBuildGraphics(void)
             ShowBg(0);
             ShowBg(1);
             ShowBg(2);
-            BeginNormalPaletteFade(0xFFFFFFFF, 0, 16, 0, 0);
+            BeginNormalPaletteFade(0xFFFFFFFF, 0, 16, 0, RGB_BLACK);
             gPaletteFade.bufferTransferDisabled = FALSE;
             sMailRead->callback2 = CB2_WaitForPaletteExitOnKeyPress;
             return TRUE;
@@ -477,22 +478,22 @@ static void sub_8121B1C(void)
     y = 0;
     PutWindowTilemap(0);
     PutWindowTilemap(1);
-    FillWindowPixelBuffer(0, 0);
-    FillWindowPixelBuffer(1, 0);
+    FillWindowPixelBuffer(0, PIXEL_FILL(0));
+    FillWindowPixelBuffer(1, PIXEL_FILL(0));
     for (i = 0; i < sMailRead->layout->numSubStructs; i ++)
     {
         if (sMailRead->strbuf[i][0] == EOS || sMailRead->strbuf[i][0] == CHAR_SPACE)
         {
             continue;
         }
-        AddTextPrinterParameterized3(0, 1, sMailRead->layout->var8[i].xOffset + sMailRead->layout->wordsYPos, y + sMailRead->layout->wordsXPos, sUnknown_0859F2AC, 0, sMailRead->strbuf[i]);
+        AddTextPrinterParameterized3(0, 1, sMailRead->layout->var8[i].xOffset + sMailRead->layout->wordsYPos, y + sMailRead->layout->wordsXPos, sTextColors, 0, sMailRead->strbuf[i]);
         y += sMailRead->layout->var8[i].lineHeight;
     }
     bufptr = StringCopy(strbuf, gText_FromSpace);
     StringCopy(bufptr, sMailRead->playerName);
     box_x = GetStringCenterAlignXOffset(1, strbuf, sMailRead->signatureWidth) + 0x68;
     box_y = sMailRead->layout->signatureYPos + 0x58;
-    AddTextPrinterParameterized3(0, 1, box_x, box_y, sUnknown_0859F2AC, 0, strbuf);
+    AddTextPrinterParameterized3(0, 1, box_x, box_y, sTextColors, 0, strbuf);
     CopyWindowToVram(0, 3);
     CopyWindowToVram(1, 3);
 }
@@ -526,7 +527,7 @@ static void CB2_ExitOnKeyPress(void)
 {
     if (gMain.newKeys & (A_BUTTON | B_BUTTON))
     {
-        BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 16, 0);
+        BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 16, RGB_BLACK);
         sMailRead->callback2 = CB2_ExitMailReadFreeVars;
     }
 }
@@ -541,7 +542,7 @@ static void CB2_ExitMailReadFreeVars(void)
             case 1:
             case 2:
                 FreeMonIconPalette(sub_80D2E84(sMailRead->mail->species));
-                sub_80D2EF8(&gSprites[sMailRead->monIconSprite]);
+                FreeAndDestroyMonIconSprite(&gSprites[sMailRead->monIconSprite]);
         }
         memset(sMailRead, 0, sizeof(*sMailRead));
         ResetPaletteFade();

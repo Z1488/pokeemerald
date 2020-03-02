@@ -1,8 +1,8 @@
 Underwater3_MapScripts:: @ 81F7724
-	map_script 5, Underwater3_MapScript1_1F772A
+	map_script MAP_SCRIPT_ON_RESUME, Underwater3_OnResume
 	.byte 0
 
-Underwater3_MapScript1_1F772A: @ 81F772A
-	call Underwater3_EventScript_274223
+Underwater3_OnResume: @ 81F772A
+	call AbnormalWeather_Underwater_SetupEscapeWarp
 	end
 

@@ -9,6 +9,7 @@
 #include "tv.h"
 #include "constants/heal_locations.h"
 #include "constants/flags.h"
+#include "constants/tv.h"
 
 int GameClear(void)
 {
@@ -34,24 +35,24 @@ int GameClear(void)
     if (GetGameStat(GAME_STAT_FIRST_HOF_PLAY_TIME) == 0)
         SetGameStat(GAME_STAT_FIRST_HOF_PLAY_TIME, (gSaveBlock2Ptr->playTimeHours << 16) | (gSaveBlock2Ptr->playTimeMinutes << 8) | gSaveBlock2Ptr->playTimeSeconds);
 
-    SetSecretBase2Field_9();
+    SetContinueGameWarpStatus();
 
     if (gSaveBlock2Ptr->playerGender == MALE)
-        sub_8084F6C(HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F);
+        SetContinueGameWarpToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F);
     else
-        sub_8084F6C(HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE_2F);
+        SetContinueGameWarpToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE_2F);
 
     ribbonGet = FALSE;
 
-    for (i = 0; i < 6; i++)
+    for (i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gPlayerParty[i];
 
         ribbonCounts[i].partyIndex = i;
         ribbonCounts[i].count = 0;
 
-        if (GetMonData(mon, MON_DATA_SANITY_BIT2)
-         && !GetMonData(mon, MON_DATA_SANITY_BIT3)
+        if (GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES)
+         && !GetMonData(mon, MON_DATA_SANITY_IS_EGG)
          && !GetMonData(mon, MON_DATA_CHAMPION_RIBBON))
         {
             u8 val[1] = {TRUE};
@@ -76,9 +77,9 @@ int GameClear(void)
             }
         }
 
-        if (ribbonCounts[0].count > 4)
+        if (ribbonCounts[0].count > NUM_CUTIES_RIBBONS)
         {
-            sub_80EE4DC(&gPlayerParty[ribbonCounts[0].partyIndex], MON_DATA_CHAMPION_RIBBON);
+            TryPutSpotTheCutiesOnAir(&gPlayerParty[ribbonCounts[0].partyIndex], MON_DATA_CHAMPION_RIBBON);
         }
     }
 
@@ -86,7 +87,7 @@ int GameClear(void)
     return 0;
 }
 
-bool8 sp0C8_whiteout_maybe(void)
+bool8 SetCB2WhiteOut(void)
 {
     SetMainCallback2(CB2_WhiteOut);
     return FALSE;

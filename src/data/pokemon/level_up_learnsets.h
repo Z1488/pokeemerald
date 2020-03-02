@@ -1,8 +1,4 @@
-#ifndef POKEEMERALD_LEVEL_UP_LEARNSETS_H
-#define POKEEMERALD_LEVEL_UP_LEARNSETS_H
-
 #define LEVEL_UP_MOVE(lvl, move) ((lvl << 9) | move)
-#define LEVEL_UP_END 0xffff
 
 static const u16 sBulbasaurLevelUpLearnset[] = {
     LEVEL_UP_MOVE( 1, MOVE_TACKLE),
@@ -5619,5 +5615,3 @@ static const u16 sChimechoLevelUpLearnset[] = {
     LEVEL_UP_MOVE(46, MOVE_PSYCHIC),
     LEVEL_UP_END
 };
-
-#endif //POKEEMERALD_LEVEL_UP_LEARNSETS_H

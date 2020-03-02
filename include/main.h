@@ -42,6 +42,8 @@ struct Main
 
 extern const u8 gGameVersion;
 extern const u8 gGameLanguage;
+extern const u8 RomHeaderGameCode[4];
+extern const u8 RomHeaderSoftwareVersion;
 
 extern u16 gKeyRepeatStartDelay;
 extern bool8 gLinkTransferringData;
@@ -51,7 +53,7 @@ extern bool8 gSoftResetDisabled;
 extern IntrFunc gIntrTable[];
 extern u8 gLinkVSyncDisabled;
 extern u32 IntrMain_Buffer[];
-extern u8 gPcmDmaCounter;
+extern s8 gPcmDmaCounter;
 
 void AgbMain(void);
 void SetMainCallback2(MainCallback callback);
@@ -61,10 +63,14 @@ void SetHBlankCallback(IntrCallback callback);
 void SetVCountCallback(IntrCallback callback);
 void SetSerialCallback(IntrCallback callback);
 void InitFlashTimer(void);
+void SetTrainerHillVBlankCounter(u32 *var);
+void ClearTrainerHillVBlankCounter(void);
 void DoSoftReset(void);
 void ClearPokemonCrySongs(void);
 void RestoreSerialTimer3IntrHandlers(void);
 void StartTimer1(void);
 void SeedRngAndSetTrainerId(void);
+u16 GetGeneratedTrainerIdLower(void);
+void sub_819789C(void);
 
 #endif // GUARD_MAIN_H

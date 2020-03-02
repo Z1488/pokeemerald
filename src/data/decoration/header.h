@@ -1,10 +1,3 @@
-//
-// Created by scott on 10/21/2017.
-//
-
-#ifndef GUARD_DATA_DECORATION_HEADER_H
-#define GUARD_DATA_DECORATION_HEADER_H
-
 const struct Decoration gDecorations[] = {
     {
         DECOR_NONE,
@@ -693,7 +686,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_PICHU_DOLL,
         _("PICHU DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -702,7 +695,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_PIKACHU_DOLL,
         _("PIKACHU DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -711,7 +704,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_MARILL_DOLL,
         _("MARILL DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -720,7 +713,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_TOGEPI_DOLL,
         _("TOGEPI DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -729,7 +722,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_CYNDAQUIL_DOLL,
         _("CYNDAQUIL DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -738,7 +731,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_CHIKORITA_DOLL,
         _("CHIKORITA DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -747,7 +740,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_TOTODILE_DOLL,
         _("TOTODILE DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -756,7 +749,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_JIGGLYPUFF_DOLL,
         _("JIGGLYPUFF DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -765,7 +758,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_MEOWTH_DOLL,
         _("MEOWTH DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -774,7 +767,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_CLEFAIRY_DOLL,
         _("CLEFAIRY DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -783,7 +776,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_DITTO_DOLL,
         _("DITTO DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -792,7 +785,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_SMOOCHUM_DOLL,
         _("SMOOCHUM DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -801,7 +794,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_TREECKO_DOLL,
         _("TREECKO DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -810,7 +803,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_TORCHIC_DOLL,
         _("TORCHIC DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -819,7 +812,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_MUDKIP_DOLL,
         _("MUDKIP DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -828,7 +821,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_DUSKULL_DOLL,
         _("DUSKULL DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -837,7 +830,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_WYNAUT_DOLL,
         _("WYNAUT DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -846,7 +839,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_BALTOY_DOLL,
         _("BALTOY DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -855,7 +848,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_KECLEON_DOLL,
         _("KECLEON DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -864,7 +857,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_AZURILL_DOLL,
         _("AZURILL DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -873,7 +866,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_SKITTY_DOLL,
         _("SKITTY DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -882,7 +875,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_SWABLU_DOLL,
         _("SWABLU DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -891,7 +884,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_GULPIN_DOLL,
         _("GULPIN DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -900,7 +893,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_LOTAD_DOLL,
         _("LOTAD DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -909,7 +902,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_SEEDOT_DOLL,
         _("SEEDOT DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_DOLL,
         3000,
@@ -918,7 +911,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_PIKA_CUSHION,
         _("PIKA CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -927,7 +920,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_ROUND_CUSHION,
         _("ROUND CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -936,7 +929,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_KISS_CUSHION,
         _("KISS CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -945,7 +938,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_ZIGZAG_CUSHION,
         _("ZIGZAG CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -954,7 +947,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_SPIN_CUSHION,
         _("SPIN CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -963,7 +956,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_DIAMOND_CUSHION,
         _("DIAMOND CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -972,7 +965,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_BALL_CUSHION,
         _("BALL CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -981,7 +974,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_GRASS_CUSHION,
         _("GRASS CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -990,7 +983,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_FIRE_CUSHION,
         _("FIRE CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -999,7 +992,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_WATER_CUSHION,
         _("WATER CUSHION"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x1,
         DECORCAT_CUSHION,
         2000,
@@ -1008,7 +1001,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_SNORLAX_DOLL,
         _("SNORLAX DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1017,7 +1010,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_RHYDON_DOLL,
         _("RHYDON DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1026,7 +1019,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_LAPRAS_DOLL,
         _("LAPRAS DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1035,7 +1028,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_VENUSAUR_DOLL,
         _("VENUSAUR DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1044,7 +1037,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_CHARIZARD_DOLL,
         _("CHARIZARD DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1053,7 +1046,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_BLASTOISE_DOLL,
         _("BLASTOISE DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1062,7 +1055,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_WAILMER_DOLL,
         _("WAILMER DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1071,7 +1064,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_REGIROCK_DOLL,
         _("REGIROCK DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1080,7 +1073,7 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_REGICE_DOLL,
         _("REGICE DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
@@ -1089,12 +1082,10 @@ const struct Decoration gDecorations[] = {
     }, {
         DECOR_REGISTEEL_DOLL,
         _("REGISTEEL DOLL"),
-        DECORPERM_SOLID_MAT,
+        DECORPERM_SPRITE,
         DECORSHAPE_1x2,
         DECORCAT_DOLL,
         10000,
         DecorDesc_REGISTEEL_DOLL,
         DecorGfx_REGISTEEL_DOLL}
 };
-
-#endif //GUARD_DATA_DECORATION_HEADER_H

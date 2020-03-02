@@ -25,14 +25,15 @@ struct UnkSaveSection
 
 struct SaveSectionOffsets
 {
-	u16 toAdd;
-	u16 size;
+    u16 toAdd;
+    u16 size;
 };
 
 // Emerald changes this definition to be the sectors per slot.
 #define NUM_SECTORS_PER_SLOT 16
 
 #define UNKNOWN_CHECK_VALUE 0x8012025
+#define SPECIAL_SECTION_SENTINEL 0xB39D
 
 // SetDamagedSectorBits states
 enum
@@ -48,13 +49,30 @@ enum
     SAVE_NORMAL,
     SAVE_LINK,
     //EREADER_SAVE, // deprecated in Emerald
-	SAVE_LINK2, // unknown 2nd link save
+    SAVE_LINK2, // unknown 2nd link save
     SAVE_HALL_OF_FAME,
     SAVE_OVERWRITE_DIFFERENT_FILE,
     SAVE_HALL_OF_FAME_ERASE_BEFORE // unused
 };
 
-#define SECTION_ID_RECORDED_BATTLE  31
+#define SECTOR_ID_SAVEBLOCK2  0
+#define SECTOR_ID_SAVEBLOCK1_START 1
+#define SECTOR_ID_SAVEBLOCK1_END   4
+#define SECTOR_ID_PKMN_STORAGE_START 5
+#define SECTOR_ID_PKMN_STORAGE_END   13
+#define SECTOR_SAVE_SLOT_LENGTH 14
+// Save Slot 1: 0-13;  Save Slot 2: 14-27
+#define SECTOR_ID_HOF_1 28
+#define SECTOR_ID_HOF_2 29
+#define SECTOR_ID_TRAINER_HILL 30
+#define SECTOR_ID_RECORDED_BATTLE  31
+#define SECTORS_COUNT 32
+
+#define SAVE_STATUS_EMPTY    0
+#define SAVE_STATUS_OK       1
+#define SAVE_STATUS_CORRUPT  2
+#define SAVE_STATUS_NO_FLASH 4
+#define SAVE_STATUS_ERROR    0xFF
 
 extern u16 gLastWrittenSector;
 extern u32 gLastSaveCounter;
@@ -72,41 +90,21 @@ extern struct SaveSection gSaveDataBuffer;
 
 void ClearSaveData(void);
 void Save_ResetSaveCounters(void);
-bool32 SetDamagedSectorBits(u8 op, u8 bit);
-u8 save_write_to_flash(u16 a1, const struct SaveSectionLocation *location);
-u8 HandleWriteSector(u16 a1, const struct SaveSectionLocation *location);
-u8 HandleWriteSectorNBytes(u8 sector, u8 *data, u16 size);
-u8 TryWriteSector(u8 sector, u8 *data);
-u32 RestoreSaveBackupVarsAndIncrement(const struct SaveSectionLocation *location);
-u32 RestoreSaveBackupVars(const struct SaveSectionLocation *location);
-u8 sub_81529D4(u16 a1, const struct SaveSectionLocation *location);
-u8 sub_8152A34(u16 a1, const struct SaveSectionLocation *location);
-u8 ClearSaveData_2(u16 a1, const struct SaveSectionLocation *location);
-u8 sav12_xor_get(u16 a1, const struct SaveSectionLocation *location);
-u8 sub_8152CAC(u16 a1, const struct SaveSectionLocation *location);
-u8 sub_8152D44(u16 a1, const struct SaveSectionLocation *location);
-u8 sub_8152DD0(u16 a1, const struct SaveSectionLocation *location);
-u8 sub_8152E10(u16 a1, const struct SaveSectionLocation *location);
-u8 GetSaveValidStatus(const struct SaveSectionLocation *location);
-u8 sub_81530DC(u8 a1, u8 *data, u16 size);
-u8 DoReadFlashWholeSection(u8 sector, struct SaveSection *section);
-u16 CalculateChecksum(void *data, u16 size);
-void UpdateSaveAddresses(void);
 u8 HandleSavingData(u8 saveType);
 u8 TrySavingData(u8 saveType);
 bool8 sub_8153380(void);
 bool8 sub_81533AC(void);
-u8 sub_81533E0(void);
-u8 sub_8153408(void);
-u8 sub_8153430(void);
-bool8 sub_8153474(void);
-u8 Save_LoadGameData(u8 a1);
+bool8 sub_81533E0(void);
+bool8 sub_8153408(void);
+bool8 FullSaveGame(void);
+bool8 CheckSaveFile(void);
+u8 Save_LoadGameData(u8 saveType);
 u16 sub_815355C(void);
-u8 sub_81534D0(u8);
-u8 sub_8153430(void);
-bool8 sub_8153474(void);
-u32 TryCopySpecialSaveSection(u8 sector, u8* dst);
-u32 sub_8153634(u8 sector, u8* src);
+u32 TryReadSpecialSaveSection(u8 sector, u8* dst);
+u32 TryWriteSpecialSaveSection(u8 sector, u8* src);
 void sub_8153688(u8 taskId);
+
+// save_failed_screen.c
+void DoSaveFailedScreen(u8 saveType);
 
 #endif // GUARD_SAVE_H

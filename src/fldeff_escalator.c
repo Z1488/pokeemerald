@@ -2,18 +2,20 @@
 #include "field_camera.h"
 #include "field_player_avatar.h"
 #include "fieldmap.h"
+#include "fldeff.h"
 #include "task.h"
+#include "constants/metatile_labels.h"
 
 static EWRAM_DATA u8 sEscalatorAnim_TaskId = 0;
 
-void sub_80E12E8(u8 taskId, const s16 *list, u16 c)
+static void sub_80E12E8(u8 taskId, const s16 *list, u16 isImpassableFlag)
 {
     s16 r5 = gTasks[taskId].data[4] - 1;
     s16 r3 = gTasks[taskId].data[5] - 1;
     s16 r4 = gTasks[taskId].data[1];
     s16 y;
     s16 x;
-    
+
     if (gTasks[taskId].data[2] == 0)
     {
         for (y = 0; y < 3; y++)
@@ -21,13 +23,13 @@ void sub_80E12E8(u8 taskId, const s16 *list, u16 c)
             for (x = 0; x < 3; x++)
             {
                 s16 metatileId = MapGridGetMetatileIdAt(r5 + x, r3 + y);
-                
+
                 if (list[r4] == metatileId)
                 {
                     if (r4 != 2)
-                        MapGridSetMetatileIdAt(r5 + x, r3 + y, c | list[r4 + 1]);
+                        MapGridSetMetatileIdAt(r5 + x, r3 + y, isImpassableFlag | list[r4 + 1]);
                     else
-                        MapGridSetMetatileIdAt(r5 + x, r3 + y, c | list[0]);
+                        MapGridSetMetatileIdAt(r5 + x, r3 + y, isImpassableFlag | list[0]);
                 }
             }
         }
@@ -39,28 +41,62 @@ void sub_80E12E8(u8 taskId, const s16 *list, u16 c)
             for (x = 0; x < 3; x++)
             {
                 s16 metatileId = MapGridGetMetatileIdAt(r5 + x, r3 + y);
-                
+
                 if (list[2 - r4] == metatileId)
                 {
                     if (r4 != 2)
-                        MapGridSetMetatileIdAt(r5 + x, r3 + y, c | list[1 - r4]);
+                        MapGridSetMetatileIdAt(r5 + x, r3 + y, isImpassableFlag | list[1 - r4]);
                     else
-                        MapGridSetMetatileIdAt(r5 + x, r3 + y, c | list[2]);
+                        MapGridSetMetatileIdAt(r5 + x, r3 + y, isImpassableFlag | list[2]);
                 }
             }
         }
     }
 }
 
-static const u16 gUnknown_08589ABA[] = {0x284, 0x282, 0x280};
-static const u16 gUnknown_08589AC0[] = {0x285, 0x283, 0x281};
-static const u16 gUnknown_08589AC6[] = {0x28C, 0x28A, 0x288};
-static const u16 gUnknown_08589ACC[] = {0x28D, 0x28B, 0x289};
-static const u16 gUnknown_08589AD2[] = {0x2A0, 0x2A2, 0x2A4};
-static const u16 gUnknown_08589AD8[] = {0x2A1, 0x2A3, 0x2A5};
-static const u16 gUnknown_08589ADE[] = {0x2A8, 0x2AA, 0x2AC};
+static const u16 sElevatorMetatiles_1F_0[] = {
+    METATILE_ID(PokemonCenter, Elevator1F_Tile0_Frame2),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile0_Frame1),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile0_Frame0)
+};
 
-void sub_80E1444(u8 taskId)
+static const u16 sElevatorMetatiles_1F_1[] = {
+    METATILE_ID(PokemonCenter, Elevator1F_Tile1_Frame2),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile1_Frame1),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile1_Frame0)
+};
+
+static const u16 sElevatorMetatiles_1F_2[] = {
+    METATILE_ID(PokemonCenter, Elevator1F_Tile2_Frame2),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile2_Frame1),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile2_Frame0)
+};
+
+static const u16 sElevatorMetatiles_1F_3[] = {
+    METATILE_ID(PokemonCenter, Elevator1F_Tile3_Frame2),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile3_Frame1),
+    METATILE_ID(PokemonCenter, Elevator1F_Tile3_Frame0)
+};
+
+static const u16 sElevatorMetatiles_2F_0[] = {
+    METATILE_ID(PokemonCenter, Elevator2F_Tile0_Frame0),
+    METATILE_ID(PokemonCenter, Elevator2F_Tile0_Frame1),
+    METATILE_ID(PokemonCenter, Elevator2F_Tile0_Frame2)
+};
+
+static const u16 sElevatorMetatiles_2F_1[] = {
+    METATILE_ID(PokemonCenter, Elevator2F_Tile1_Frame0),
+    METATILE_ID(PokemonCenter, Elevator2F_Tile1_Frame1),
+    METATILE_ID(PokemonCenter, Elevator2F_Tile1_Frame2)
+};
+
+static const u16 sElevatorMetatiles_2F_2[] = {
+    METATILE_ID(PokemonCenter, Elevator2F_Tile2_Frame0),
+    METATILE_ID(PokemonCenter, Elevator2F_Tile2_Frame1),
+    METATILE_ID(PokemonCenter, Elevator2F_Tile2_Frame2)
+};
+
+static void sub_80E1444(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
@@ -69,25 +105,25 @@ void sub_80E1444(u8 taskId)
     switch (data[0])
     {
         case 0:
-            sub_80E12E8(taskId, gUnknown_08589ABA, 0);
+            sub_80E12E8(taskId, sElevatorMetatiles_1F_0, 0);
             break;
         case 1:
-            sub_80E12E8(taskId, gUnknown_08589AC0, 0);
+            sub_80E12E8(taskId, sElevatorMetatiles_1F_1, 0);
             break;
         case 2:
-            sub_80E12E8(taskId, gUnknown_08589AC6, 0xC00);
+            sub_80E12E8(taskId, sElevatorMetatiles_1F_2, METATILE_COLLISION_MASK);
             break;
         case 3:
-            sub_80E12E8(taskId, gUnknown_08589ACC, 0);
+            sub_80E12E8(taskId, sElevatorMetatiles_1F_3, 0);
             break;
         case 4:
-            sub_80E12E8(taskId, gUnknown_08589AD2, 0xC00);
+            sub_80E12E8(taskId, sElevatorMetatiles_2F_0, METATILE_COLLISION_MASK);
             break;
         case 5:
-            sub_80E12E8(taskId, gUnknown_08589AD8, 0);
+            sub_80E12E8(taskId, sElevatorMetatiles_2F_1, 0);
             break;
         case 6:
-            sub_80E12E8(taskId, gUnknown_08589ADE, 0);
+            sub_80E12E8(taskId, sElevatorMetatiles_2F_2, 0);
             break;
     }
 
@@ -100,7 +136,7 @@ void sub_80E1444(u8 taskId)
     }
 }
 
-u8 sub_80E150C(u16 var)
+static u8 sub_80E150C(u16 var)
 {
     u8 taskId = CreateTask(sub_80E1444, 0);
     s16 *data = gTasks[taskId].data;
